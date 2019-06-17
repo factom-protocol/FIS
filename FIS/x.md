@@ -12,20 +12,24 @@ conventions, contribution guidelines, and ecosystem of FIS.
 
 # What Is A FIS?
 
-FIS is an informal specification and process with best practices for 2nd layer solutions on 
-top of the Factom&reg; Protocol. It is not mandatory in any way, but for maximum interoperability 
-with other products and solutions we advice you to take FIS into account. A FIS is never about the development
-of sofware itself. Sofware can choose to be compatible with one or more Factom Interoperability Specifications.
+A FIS defines an informal specification and/or best practices for 2nd layer solutions on
+top of the Factom&reg; Protocol. It is not mandatory that parties building on Factom adopt 
+these specifications, but for maximum interoperability with other products and solutions we 
+advise you to take any FIS related to your product into account. 
+
+A FIS is never about the development of sofware itself. Developers may choose to make their 
+software compatible with one or more Factom Interoperability Specifications.
 
 
 # Why Are They Important?
 
 FIS provides an open forum for the community to collaborate on and accept new
-2nd layer specification for the Factom&reg; Protocol. The Factom&reg; Protocol is completely open source, and we rely
-on our community and standing parties to keep us pointed in the right direction. Everybody can create
-any software running on top of the protocol. As the protocol is public we encourage 
-developers to develop their applications with interoperability in mind, so that people can 
-interact with users of your software, without requiring to use your software and vice versa.
+2nd layer specifications for the Factom&reg; Protocol. The Factom&reg; Protocol 
+is completely open source, and we rely on our community and standing parties to keep us pointed
+in the right direction. Everybody can create any software running on top of the protocol. 
+As the protocol is public we encourage developers to develop their applications with 
+interoperability in mind, so that people can interact with users of your software, without 
+requiring use of your software and vice versa.
 
 
 # Contributing
@@ -42,11 +46,12 @@ it reviewed and included for evaluation by the community.
 
 ## Identities & key management
 
-Specifications that are related to identities on Factom, like native Factom identities, DIDs as well as cryptographic key management/replacement.
+Specifications that are related to identities on Factom, like native Factom identities, 
+DIDs, and cryptographic key management/replacement.
 
 ## Wallets
 
-Specification that govern wallets, both hardware and software wallets.
+Specification that govern hardware and software wallets.
 
 
 ## Explorers
@@ -56,11 +61,13 @@ Specification for explorers.
 
 ## APIs
 
-Specifications about 2nd layer API tools, like Factom OpenAPI. So do not use this category whenever you propose an API for instance for wallet interoperability.
+Specifications for 2nd layer API tools, like Factom OpenAPI. This section is restricted to 
+dedicated APIs, and should not include specifications for other tools such as wallets 
+that only happen to have an API.
 
 ## Voting &amp; polls
 
-Specifications about voting and poll solutions.
+Specifications for voting and poll solutions.
 
 
 ## Meta
@@ -86,7 +93,7 @@ proposed specification.
 
 ## Draft
 
-The specification is in the progress of being revised. Follow up pull requests will
+The specification is in the process of being revised. Follow-up pull requests will
 be accepted to revise the specification until it is ready to go through the last
 call process (explained below).
 
@@ -100,7 +107,7 @@ public.
 - If the specification is approved then it will
   move onto final.
 
-As FIS is young, currently no maximum timeline is set for this status.
+As FIS is a new standard, there is currently no maximum timeline set for this status.
   
 
 ## Final
@@ -115,9 +122,9 @@ prefix. Errata may be formally submitted following this stage if required.
 
 # FIS Editors
 
-For each new FIS that comes in, an editor does the following:
+For each new FIS, an editor will:
 
-- Read the FIS to check if it is ready: sound and complete. The ideas must
+- Read the FIS to check if it is ready, sound and complete. The ideas must
   make technical sense, even if they don't seem likely to get to final status.
 - The title should accurately describe the content.
 - Check the FIS for language (spelling, grammar, sentence structure, etc.),
@@ -182,12 +189,13 @@ interoperable implementations for any of the current Factom&reg; Protocol.
 ## Implementation
 
 As FIS is about specification, a software product is not necessarily the outcome of a FIS.
-A reference implementation is of course always welcome.
+However, a reference implementation is always welcome.
 
 
 ## Copyright
 
-The standard must have a copyright section that waives rights according to CC0. Please note that this is only applicable for the proposal itself:
+The standard must have a copyright section that waives rights according to CC0. Please note that
+this is only applicablefor the proposal itself:
 
 ```
 Copyright and related rights waived via
