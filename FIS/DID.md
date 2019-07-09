@@ -1,8 +1,8 @@
 | FIS   | Title         | Status | Category               | Author                                     | Created    |
 | ----- | ------------- | ------ | ---------------------- | ------------------------------------------ | ---------- |
-| -     | Factom Decentralized Identifiers (DID)  | Draft  | Identities       |  | 20190702   |
+| -     | Factom Decentralized Identifiers (DID)  | Draft  | Identities       | Valentin Ganev (Factomatic LLC) \<<nklomp@sphereon.com>\> | 20190701   |
 
-_Factomatic LLC: Valentin Ganev & Peter Asenov, Sphereon BV: Niels Klomp, Factom Inc: Carl Diclimenti, Sam Barnes
+_Factomatic LLC: Valentin Ganev & Peter Asenov, Sphereon BV: Niels Klomp, Factom Inc: Carl Diclimenti, Sam Barnes_
 
 # Summary
 
@@ -18,11 +18,10 @@ title: Factom Decentralized Identifiers (DID) Specification
 
 
 
-Version 1.0.0
+Version 1.0
 
-Introduction
-============
 
+##Introduction
 This specification describes [decentralized
 identifiers](https://w3c-ccg.github.io/did-spec/) (DIDs) for the Factom
 blockchain. DIDs are an emerging effort for establishing a standard for
@@ -40,8 +39,7 @@ as the terminology and the basic building blocks of a decentralized identifier.
 Please note that implementers of this spec are expected to have knowledge of the
 W3C specification.
 
-Actors
-------
+###Actors
 
 There are three main entities involved in a DID system: a Controller, a Relying
 Party and a Subject.
@@ -59,25 +57,20 @@ themselves as the Subject. When the Subject is not the Controller, the
 Controller is said to be taking action on behalf of the Subject, such as when an
 employee manages a DID on behalf of their employer or a parent uses a DID on
 behalf of their child. [1]
+  
 
-DID Schemes
------------
-
+###DID Schemes
 A DID scheme is the formal syntax, which defines how a decentralized identifier
 should look like. The generic DID scheme is defined in [2]. A DID method
 specification, such as the one in this document, defines a specific DID scheme,
 conforming to the generic one in [2], and utilized in a specific DID method.
 
-DID Methods
------------
-
+###DID Methods
 A definition of how a specific DID scheme can be implemented on a specific
 distributed ledger or network, including the precise method(s) by which DIDs and
 DID Documents can be read, written, updated and deactivated [2].
 
-DID Documents
--------------
-
+###DID Documents
 A set of data that describes a DID, including mechanisms, such as public keys
 and pseudonymous biometrics, that an entity can use to authenticate itself as
 the DID. A DID Document may also contain other
@@ -87,9 +80,7 @@ documents are graph-based data structures that are typically expressed using
 [JSON-LD](https://w3c-ccg.github.io/did-spec/#bib-json-ld), but may be expressed
 using other compatible graph-based data formats [2].
 
-DID Resolvers & Registrars
---------------------------
-
+###DID Resolvers & Registrars
 A DID system has two main software components: a
 [resolver](https://github.com/decentralized-identity/universal-resolver) and a
 [registrar](https://github.com/decentralized-identity/universal-registrar/blob/master/docs/api-documentation.md).
@@ -97,9 +88,7 @@ The role of the resolver is to return the valid DID document for a given DID. On
 the other hand, the role of the registrar is to allow the creation of new DIDs
 and DID documents.
 
-DID Format
-----------
-
+###DID Format
 The DID format is inspired from the basic pattern used in the specification of
 [URNs](https://tools.ietf.org/html/rfc8141):
 
@@ -114,55 +103,48 @@ All DID method specifications **must** define the format and generation of the
 DID method specific string. Note that this string **must** be unique in the
 namespace of that DID method [3].
 
-Factom DID Method
-=================
 
-DID Method Name
----------------
+##Factom DID Method
 
+###DID Method Name
 The namestring that shall identify this DID method is: factom
 
 A DID that uses this method MUST begin with the following prefix: did:factom.
 Per the DID specification, this string MUST be in lowercase. The remainder of
 the DID, after the prefix is specified below.
 
-Method Specific Identifier
---------------------------
+###Method Specific Identifier
 
 The method specific name string is composed of an optional Factom network
 identifier with a :separator, followed by a hex-encoded Factom chain ID.
 
-| factom-did = "did:factom:" factom-specific-idstring                                                                                                                                    |
-| factom-specific-idstring = [ factom-network ":" ] factom-chain-id                                                                                                                      |
-| factom-network = "mainnet" / "testnet"                                                                                                                                                 |
-| factom-chain-id = 64\*HEXDIG                                                                                                                                                           |
-|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+```
+factom-did = "did:factom:" factom-specific-idstring
+factom-specific-idstring = [ factom-network ":" ] factom-chain-id
+factom-network = "mainnet" / "testnet"
+factom-chain-id = 64\*HEXDIG
+```
 
 
 The factom-chain-id is case-insensitive.
 
 This specification currently only supports Factom "mainnet" and "testnet", but
 can be extended to support any number of public or private Factom networks. If
-you leave out the factom-network mainnet is assumed typically, but in reality it
+you leave out the factom-network, "mainnet" is assumed typically, but in reality it
 is left up to the resolver. If the resolver is only hooked up to a specific
-network it will on look at that network.
+network it will only look at that network.
 
 Example factom DIDs:
 
--   did:factom:f26e1c422c657521861ced450442d0c664702f49480aec67805822edfcfee758
+> did:factom:f26e1c422c657521861ced450442d0c664702f49480aec67805822edfcfee758
+> did:factom:mainnet:f26e1c422c657521861ced450442d0c664702f49480aec67805822edfcfee758
+> did:factom:testnet:f26e1c422c657521861ced450442d0c664702f49480aec67805822edfcfee758
 
--   did:factom:mainnet:f26e1c422c657521861ced450442d0c664702f49480aec67805822edfcfee758
+## DID Management (CRUD operations, entry structures, validation rules)
 
--   did:factom:testnet:
-
-DID Management (CRUD operations, entry structures, validation rules)
-====================================================================
-
-Creation
---------
-
+###Creation
 Purpose: A valid entry of this type creates the DID document, located at the DID
-URI: did:factom:{chain-id}
+URI: `did:factom:{chain-id}`
 
 The purpose of the nonce is to make the chain ID for the new DID unique. It is
 up to the implementor to assure this. The SHA256 hash of the Content field might
@@ -177,42 +159,113 @@ later sections in this document.
 Resolution Rules:
 
 -   MUST be the first entry of the chain
-
 -   MUST have a valid didMethodVersion specified (currently only "1.0.0"
     supported)
-
 -   MUST have at least one management key at priority 0
 
-Entry Structure:
+####Entry Structure:
 
-| **ExtIDs** [0] = "DIDManagement"                         // UTF-8 encoded [1] = \<entry schema version tag\>              // UTF-8 encoded (ex: "1.0.0") [semantic versioned](https://snowplowanalytics.com/blog/2014/05/13/introducing-schemaver-for-semantic-versioning-of-schemas/) [2] = \<misc tags / identity names\>            // UTF-8 encoded (2nd ExtID must be unique (recommended 32 byte nonce)) ... [n] = \<misc tags / identity names\>            // UTF-8 encoded (note: content JSON always minified) **Content** "{   "didMethodVersion": \<new method spec version tag as string\>,   "managementKey": [     {       "id": \<key identifier\>,       "type": \<key type ("Ed25519VerificationKey", "ECDSASecp256k1VerificationKey", "RSAVerificationKey")\>,       "controller": \<DID which controls this key\>,       "publicKeyBase58": \<public key value\>,       "priorityRequirement": \<positive integer priority\>,       "bip44": \<bip44 derivation path string\> // (optional)     },     ...   ],   "didKey": [ // (optional)     {       "id": \<key identifier\>,       "type": \<key type ("Ed25519VerificationKey", "ECDSASecp256k1VerificationKey", "RSAVerificationKey")\>,       "controller": \<DID which controls this key\>,       "publicKeyBase58": \<public key value\>,       "purpose": ["publicKey", "authentication"],       "priorityRequirement": \<positive integer priority required to remove this key\>, // (optional)       "bip44": \<bip44 derivation path string\> // (optional)     },     ...   ],   "service": [ // (optional)     {                                                                                                                                                                                                                                                    |
-|       "id”: \<service identifier\>,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-|       "type”: \<service type\>,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-|       "serviceEndpoint”: \<URL for service endpoint\>,       "priorityRequirement": \<positive integer priority required to remove this service (optional)\>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-|     },     ...   ] }"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+**ExtIDs**
+> [0] = "DIDManagement"                         // UTF-8 encoded
+> [1] = <entry schema version tag>              // UTF-8 encoded (ex: "1.0.0") semantic versioned
+> [2] = <misc tags / identity names>            // UTF-8 encoded (2nd ExtID must be unique (recommended 32 byte nonce))
+> ...
+> [n] = <misc tags / identity names>            // UTF-8 encoded
+
+---
+ 
+ 
+ **Content** *(note: always minified)*
+ ```json
+{
+  "didMethodVersion": <new method spec version tag as string>,
+  "managementKey": [
+    {
+      "id": <key identifier>,
+      "type": <key type ("Ed25519VerificationKey", "ECDSASecp256k1VerificationKey", "RSAVerificationKey")>,
+      "controller": <DID which controls this key>,
+      "publicKeyBase58": <public key value>,
+      "priority": <positive integer priority>,
+      "bip44": <bip44 derivation path string> // (optional)
+    },
+    ...
+  ],
+  "didKey": [ // (optional)
+    {
+      "id": <key identifier>,
+      "type": <key type ("Ed25519VerificationKey", "ECDSASecp256k1VerificationKey", "RSAVerificationKey")>,
+      "controller": <DID which controls this key>,
+      "publicKeyBase58": <public key value>,
+      "purpose": ["publicKey", "authentication"],
+      "priorityRequirement": <positive integer priority required to remove this key>, // (optional)
+      "bip44": <bip44 derivation path string> // (optional)
+    },
+    ...
+  ],
+  "service": [ // (optional)
+    {
+      "id”: <service identifier>,
+      "type”: <service type>,
+      "serviceEndpoint”: <URL for service endpoint>,
+      "priorityRequirement": <positive integer priority required to remove this service (optional)>
+    },
+    ...
+  ]
+}
+```
+
+####Example
+
+ExtIDs
+```
+[0] = "DIDManagement"
+[1] = "1.0.0"
+[2] = "d9fc30722f88ed15e98b8c256b79242df8d00c042d703306c7720796d4f0f7cd"  // UTF-8 32 bytes of randomness
+```
+Content
+ ```json
+{
+  "didMethodVersion": "0.1.0",
+  "managementKey": [
+    {
+      "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-1",
+      "type": "Ed25519VerificationKey",
+      "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
+      "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
+      "priority": 1
+    }
+  ],
+  "didKey": [
+    {
+      "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1",
+      "type": "Ed25519VerificationKey",
+      "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
+      "publicKeyBase58": "3uVAjZpfMv6gmMNam3uVAjZpfkcJCwDwnZn6MNam3uVA"
+      "purpose": ["publicKey", "authentication"]
+    },
+    {
+      "id": "did:factom:76c58916c58916ec258f246851bea091d14d4247a2fc3e18694461b14247a2f#authentication-1",
+      "type": "ECDSASecp256k1VerificationKey",
+      "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
+      "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
+      "purpose": ["authentication"],
+      "priorityRequirement": 1,
+      "bip44": "m / 44' / 0' / 0' / 0 / 0"
+    }
+  ],
+  "service": [
+    {
+      "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#cr",
+      "type": "CredentialRepositoryService",
+      "serviceEndpoint": "https://repository.example.com/service/8377464",
+      "priorityRequirement": 1
+    }
+  ]
+}
+```
 
 
-Example:
-
-| **ExtIDs** [0] = "DIDManagement" [1] = "1.0.0" [2] = "d9fc30722f88ed15e98b8c256b79242df8d00c042d703306c7720796d4f0f7cd"  // UTF-8 32 bytes of randomness **Content** "{   "didMethodVersion": "0.1.0",   "managementKey": [     {       "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#management-1",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-|       "type": "Ed25519VerificationKey",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-|       "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-|       "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",       "priorityRequirement": 1     }   ],   "didKey": [     {       "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#public-1",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-|       "type": "Ed25519VerificationKey",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-|       "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-|       "publicKeyBase58": "3uVAjZpfMv6gmMNam3uVAjZpfkcJCwDwnZn6MNam3uVA"       "purpose": ["publicKey", "authentication"]     },     {       "id": "did:factom:76c58916c58916ec258f246851bea091d14d4247a2fc3e18694461b14247a2f\#authentication-1",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-|       "type": "ECDSASecp256k1VerificationKey",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-|       "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-|       "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",       "purpose": ["authentication"],       "priorityRequirement": 1,       "bip44": "m / 44' / 0' / 0' / 0 / 0"     }   ],   "service": [     {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-|       “id”: “did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#cr”,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-|       “type”: “CredentialRepositoryService”,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|       “serviceEndpoint”: “https://repository.example.com/service/8377464”       "priorityRequirement": 1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-|     }   ] }"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-
-
-Notes:
+*Notes:*
 
 -   Explicitly did not include "\@context" in the content as the resolver can
     add this when creating the DID document for a given schema version
@@ -220,9 +273,11 @@ Notes:
     -   Our DID Method Spec version determines the DID Spec version that we
         return 
 
-Update
-------
+	  
+	  
 
+___
+###Update
 Purpose: A valid entry of this type signifies an attempt to update the DID
 Document's (public keys, authentication, service endpoints)
 
@@ -255,34 +310,90 @@ Resolution Rules:
 
     -   A key being removed must be currently active
 
-Entry Structure:
+				
 
-| ExtIDs [0] = "DIDUpdate"                                                   // UTF-8 encoded [1] = \<entry schema version tag\>                                    // UTF-8 encoded [2] = \<full key identifier of the management key used for signing\>  // UTF-8 encoded (signature type inferred from key type) [3] = \<signature over sha256d(all other ext-ids + content)\>         // raw bytes, N bytes (signature type dependent) [4] = \<misc tags\>                                                   // encoding not enforced ... [n] = \<misc tags\>                                                   // encoding not enforced Content = " {     "revoke": {         "managementKey": array of management key identifiers to retire (optional),         "didKey": array of other key identifiers to retire (optional),         "service": array of service ids to retire (optional)     } (optional),     "add": {         "managementKey": array of management key objects to add (optional),         "didKey": array of other key object to add (optional),         "service": array of service object to add (optional)     } (optional) } " |
-|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+####Entry Structure
+*ExtIDs*
+> [0] = "DIDUpdate"                                                   // UTF-8 encoded
+> [1] = <entry schema version tag>                                    // UTF-8 encoded
+> [2] = <full key identifier of the management key used for signing>  // UTF-8 encoded (signature type inferred from key type)
+> [3] = <signature over sha256d(all other ext-ids + content)>         // raw bytes, N bytes (signature type dependent)
+> [4] = <misc tags>                                                   // encoding not enforced
+> ...
+> [n] = <misc tags>                                                   // encoding not enforced
 
+*Content*
+```json
+{
+    "revoke": {
+        "managementKey": array of management key identifiers to retire (optional),
+        "didKey": array of other key identifiers to retire (optional),
+        "service": array of service ids to retire (optional)
+    } // optional,
+    "add": {
+        "managementKey": array of management key objects to add (optional),
+        "didKey": array of other key object to add (optional),
+        "service": array of service object to add (optional)
+    } // optional
+}
 
-Example:
+```
 
-| ExtIDs [0] = "DIDUpdate"                                                                                 // UTF-8 encoded [1] = "1.0.0"                                                                                     // UTF-8 encoded [2] = "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#management-1"  // UTF-8 encoded [3] = 0xf88ed15e98b8cb8c256b79242df8d00c042d70330a7edf56c772079256b79242                          // raw bytes, N bytes Content = " {     "revoke": {         "managementKey": [           "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#management-1",           "management-2"         ],         "didKey": [           "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#public-1"         ],         "service": [           "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#cr"         ]     },     "add": {         "managementKey": [{           "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#management-2",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-|           "type": "Ed25519VerificationKey",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-|           "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-|           "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",           "priority": 1         }],         "didKey": [{           "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#authentication-2",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-|           "type": "Ed25519VerificationKey",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-|           "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-|           "publicKeyBase58": "3uVAjZpfMv6gmMNH3C2AVjZpfkcJCwDwnZn6z3DwnZn6",           "purpose": ["publicKey", "authentication"],           "priorityRequirement": 2,         }],         "service": [{                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-|             "id”: "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#inbox"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-|           "type”: "SocialWebInboxService",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-|           "serviceEndpoint": "https://social.example.com/83hfh37dj",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-|           "description": "My public social inbox",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-|           "spamCost": {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-|             "amount": "0.50",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-|             "currency": "USD"            }         }]     } } "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+####Example
+*ExtIDs*
+``` 
+[0] = "DIDUpdate"                                                                                 // UTF-8 encoded
+[1] = "1.0.0"                                                                                     // UTF-8 encoded
+[2] = "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-1"  // UTF-8 encoded
+[3] = 0xf88ed15e98b8cb8c256b79242df8d00c042d70330a7edf56c772079256b79242                          // raw bytes, N bytes
+```
 
+*Content*
+```json
+{
+    "revoke": {
+        "managementKey": [
+          "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-1",
+          "management-2"
+        ],
+        "didKey": [
+          "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1"
+        ],
+        "service": [
+          "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#cr"
+        ]
+    },
+    "add": {
+        "managementKey": [{
+          "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-2",
+          "type": "Ed25519VerificationKey",
+          "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
+          "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
+          "priority": 1
+        }],
+        "didKey": [{
+          "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#authentication-2",
+          "type": "Ed25519VerificationKey",
+          "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
+          "publicKeyBase58": "3uVAjZpfMv6gmMNH3C2AVjZpfkcJCwDwnZn6z3DwnZn6",
+          "purpose": ["publicKey", "authentication"],
+          "priorityRequirement": 2
+        }],
+        "service": [{
+           "id”: "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#inbox",
+           "type”: "SocialWebInboxService",
+           "serviceEndpoint": "https://social.example.com/83hfh37dj",
+           "description": "My public social inbox",
+           "spamCost": {
+             "amount": "0.50",
+             "currency": "USD"
+           }
+        }]
+    }
+}
+```
 
-Method Spec Version Upgraded
-----------------------------
-
+###Method Spec Version Upgraded
 Purpose: A valid entry of this type signifies that the chain should stop being
 parsed using its currently declared version, and from this point forward be
 parsed according to the rules of the new version.
@@ -301,21 +412,41 @@ Resolution Rules:
 
 -   Entry hash serves as the nonce and MUST be unique
 
-Entry Structure:
+####Entry Structure
 
-| ExtIDs [0] = "DIDMethodVersionUpgrade"                                    // UTF-8 encoded [1] = \<entry schema version tag\>                                   // UTF-8 encoded [2] = \<full key identifier of the management key used for signing\> // UTF-8 encoded (signature type inferred from key type) [3] = \<signature over sha256d(all other ext-ids + content)\>        // raw bytes, N bytes (signature type dependent) [4] = \<misc tags\>                                                  // encoding not enforced …. [n] = \<misc tags\>                                                  // encoding not enforced Content = '{"didMethodVersion": \<new method spec version tag as a string\>}' |
-|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+*ExtIDs*
+> [0] = "DIDMethodVersionUpgrade"                                    // UTF-8 encoded
+> [1] = <entry schema version tag>                                   // UTF-8 encoded
+> [2] = <full key identifier of the management key used for signing> // UTF-8 encoded (signature type inferred from key type)
+> [3] = <signature over sha256d(all other ext-ids + content)>        // raw bytes, N bytes (signature type dependent)
+> [4] = <misc tags>                                                  // encoding not enforced
+> ….
+> [n] = <misc tags>                                                  // encoding not enforced
 
+*Content*
+```json
+{
+  "didMethodVersion": <new method spec version tag as a string>
+}
+```
 
-Example:
+####Example
+*ExtIDs*
+```
+[0] = "DIDMethodVersionUpgrade"
+[1] = "1.0.0"
+[2] = "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-1"
+[3] = 0xf88ed15e98b8cb8c256b79242df8d00c042d70330a7edf56c772079256b79242
+```
+*Content*
+```json
+{
+  "didMethodVersion": "0.2.0",
+}
+```
+____
 
-| ExtIDs [0] = "DIDMethodVersionUpgrade" [1] = "1.0.0" [2] = "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#management-1" [3] = 0xf88ed15e98b8cb8c256b79242df8d00c042d70330a7edf56c772079256b79242 Content = '{"didMethodVersion": "0.2.0"}' |
-|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-
-
-Deactivation
-------------
-
+###Deactivation
 Purpose: A valid entry of this type signifies the deactivation of the identity
 and the termination of all further chain parsing
 
@@ -332,16 +463,30 @@ Resolution Rules:
 
 -   Entry hash serves as the nonce and MUST be unique
 
-Entry Structure:
+####Entry Structure
+*ExtIDs*
+> [0] = "DIDDeactivation"                                             // UTF-8 encoded
+> [1] = <entry schema version tag>                                    // UTF-8 encoded
+> [2] = <full key identifier of the management key used for signing>  // UTF-8 encoded (signature type inferred from key type)
+> [3] = <signature over sha256d(all other ext-ids + content)>         // raw bytes, N bytes (signature type dependent)
+> [4] = <misc tags>                                                   // encoding not enforced
+> ...
+> [n] = <misc tags>                                                   // encoding not enforced
 
-| ExtIDs [0] = "DIDDeactivation"                                             // UTF-8 encoded [1] = \<entry schema version tag\>                                    // UTF-8 encoded [2] = \<full key identifier of the management key used for signing\>  // UTF-8 encoded (signature type inferred from key type) [3] = \<signature over sha256d(all other ext-ids + content)\>         // raw bytes, N bytes (signature type dependent) [4] = \<misc tags\>                                                   // encoding not enforced ... [n] = \<misc tags\>                                                   // encoding not enforced Content = None |
-|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+*Content*
+**<none>**
 
 
-Example:
+####Example
+*ExtIDs*
+```
+[0] = "DIDDeactivation"
+[1] = "1.0.0"
+[2] = "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-1"
+[3] = 0xf88ed15e98b8cb8c256b79242df8d00c042d70330a7edf56c772079256b79242
+```
 
-| ExtIDs [0] = "DIDDeactivation" [1] = "1.0.0" [2] = "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#management-1" [3] = 0xf88ed15e98b8cb8c256b79242df8d00c042d70330a7edf56c772079256b79242 Content = None |
-|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+*Content*
 
 
 ### Public Keys
@@ -357,23 +502,22 @@ The managementKey are quite similar except these do not end up in the DID
 document and are being used to perform the CRUD operation on the Factom
 blockchain itself.
 
-The object for a single key has the following schema:
-
+A single key has the following schema:
+```json
 {  
-“id”: a valid DID with a
-[fragment](https://w3c-ccg.github.io/did-spec/#dfn-did-fragment) for identifying
-the key (required),  
-“type”: the type of the key (required),  
-“controller”: the controller of the key (required),  
-“publicKeyBase58”: the public key, encoded in base58 (required)  
+  "id": "<a valid DID with a [fragment](https://w3c-ccg.github.io/did-spec/#dfn-did-fragment) for identifying the key (required)>",  
+  "type": "<the type of the key (required)>",  
+  "controller": "<the controller of the key (required)>",  
+  "publicKeyBase58": "<the public key, encoded in base58 (required)>"  
 }
+```
 
-The id must be a valid DID with the format did:factom:CHAIN_ID\#KEY_IDENTIFIER,
+The id must be a valid DID with the format `did:factom:CHAIN_ID\#KEY_IDENTIFIER`,
 where:
 
--   CHAIN_ID is the ID of the current chain
 
--   KEY_IDENTIFIER is a sequence of up to 32 lowercase alphanumeric characters,
+-   **CHAIN_ID** is the ID of the current chain
+-   **KEY_IDENTIFIER** is a sequence of up to 32 lowercase alphanumeric characters,
     plus hyphen, without spaces (i.e. KEY_IDENTIFIER matches the regular
     expression \^[a-z0-9-]{1,32}\$). The intended usage of KEY_IDENTIFIER is to
     serve as a nickname/alias for the key and it should be unique across the
@@ -453,8 +597,8 @@ containing additional data:
 “currency”: “USD”  
 }]
 
-DID Resolution
---------------
+##DID Resolution
+
 
 The resolution of a DID is the process of constructing a DID document by
 sequentially scanning the entries recorded in the DID chain. Next, we outline
@@ -512,18 +656,16 @@ store their keys in various levels of security. For example:
 If the hot key is lost or compromised, the other two higher priority keys are
 able to authorize a replacement.
 
-**Privacy Considerations**
-==========================
+##Privacy Considerations
 
 *TODO*
 
-**Performance Considerations**
-==============================
+##Performance Considerations
 
 *TODO*
 
-References
-----------
+##References
+
 
 [1] <https://w3c-ccg.github.io/did-use-cases/>  
 
@@ -533,12 +675,11 @@ References
 
 [4] <https://w3c-ccg.github.io/did-method-registry/>
 
-[5]<https://tools.ietf.org/html/rfc7468>
+[5] <https://tools.ietf.org/html/rfc7468>
 
-[6]<https://github.com/w3c-dvcg/multibase>
+[6] <https://github.com/w3c-dvcg/multibase>
 
-[7]<https://github.com/multiformats/multibase>
-
+[7] <https://github.com/multiformats/multibase>
 
 
 
