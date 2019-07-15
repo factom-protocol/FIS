@@ -1,13 +1,23 @@
-| FIS   | Title         | Status | Category               | Author                                     | Created    |
-| ----- | ------------- | ------ | ---------------------- | ------------------------------------------ | ---------- |
-| -     | Factom Decentralized Identifiers (DID)  | Draft  | Identities       | Valentin Ganev (Factomatic LLC) \<<nklomp@sphereon.com>\> | 20190701   |
+| FIS  | Title                                  | Status | Category   | Author                                                   | Created  |
+| ---- | -------------------------------------- | ------ | ---------- | -------------------------------------------------------- | -------- |
+| -    | Factom Decentralized Identifiers (DID) | Draft  | Identities | Factomatic LLC, Sphereon BV, Factom Inc (see list below) | 20190701 |
 
-_Factomatic LLC: Valentin Ganev & Peter Asenov, Sphereon BV: Niels Klomp, Factom Inc: Carl Diclimenti, Sam Barnes_
+_Version 1.0 authors: Factomatic LLC: Valentin Ganev & Peter Asenov, Sphereon BV: Niels Klomp, Factom Inc: Carl Diclimenti, Sam Barnes_
 
 # Summary
 
+This proposal contains the interoperability specifications for products creating, reading (resolving) updating and deactivating Decentralized Identifiers on top of the Factom Protocol. This specification is not about other products wanting to use DIDs for their specific purpose, like signing or voting. This document describes the low level data structures and rules for DIDs on Factom itself.
+
+___
+
+
 
 # Motivation
+
+Decentralized Identifiers are a cross ledger solution to support identities. The Factom Protocol is ideally suited to store DIDs. This specification is the first step in creating a single specification for maximum interoperability with regards to identities across products and solutions on top of the Factom protocol.
+
+___
+
 
 
 # Specification
@@ -35,6 +45,8 @@ as the terminology and the basic building blocks of a decentralized identifier.
 Please note that implementers of this spec are expected to have knowledge of the
 W3C specification.
 
+
+
 ### Actors
 
 There are three main entities involved in a DID system: a Controller, a Relying
@@ -54,16 +66,22 @@ Controller is said to be taking action on behalf of the Subject, such as when an
 employee manages a DID on behalf of their employer or a parent uses a DID on
 behalf of their child. [1]
 
+
+
 ### DID Schemes
 A DID scheme is the formal syntax, which defines how a decentralized identifier
 should look like. The generic DID scheme is defined in [2]. A DID method
 specification, such as the one in this document, defines a specific DID scheme,
 conforming to the generic one in [2], and utilized in a specific DID method.
 
+
+
 ### DID Methods
 A definition of how a specific DID scheme can be implemented on a specific
 distributed ledger or network, including the precise method(s) by which DIDs and
 DID Documents can be read, written, updated and deactivated [2].
+
+
 
 ### DID Documents
 A set of data that describes a DID, including mechanisms, such as public keys
@@ -75,6 +93,8 @@ documents are graph-based data structures that are typically expressed using
 [JSON-LD](https://w3c-ccg.github.io/did-spec/#bib-json-ld), but may be expressed
 using other compatible graph-based data formats [2].
 
+
+
 ### DID Resolvers & Registrars
 A DID system has two main software components: a [resolver](https://github.com/decentralized-identity/universal-resolver) and a [registrar](https://github.com/decentralized-identity/universal-registrar/blob/master/docs/api-documentation.md).
 The role of the resolver is to return the valid DID document for a given DID.
@@ -82,20 +102,24 @@ The role of the resolver is to return the valid DID document for a given DID.
 On the other hand, the role of the registrar is to allow the creation of new DIDs
 and DID documents.
 
+
+
 ### DID Format
 The DID format is inspired from the basic pattern used in the specification of
 [URNs](https://tools.ietf.org/html/rfc8141):
 
-![](media/4967f209e7bf06357fc186608e2cba34.png)
+![](DID/4967f209e7bf06357fc186608e2cba34.png)
 
 For DIDs, the namespace component identifies a DID method, while the namespace
 specific string is used to represent the DID method specific string:
 
-![](media/db3c7e52fe497bf07f691842b6d15325.png)
+![](DID/db3c7e52fe497bf07f691842b6d15325.png)
 
 All DID method specifications **must** define the format and generation of the
 DID method specific string. Note that this string **must** be unique in the
 namespace of that DID method [3].
+
+
 
 ## Factom DID Method
 
@@ -106,7 +130,9 @@ A DID that uses this method MUST begin with the following prefix: did:factom.
 Per the DID specification, this string MUST be in lowercase. The remainder of
 the DID, after the prefix is specified below.
 
-###Method Specific Identifier
+
+
+### Method Specific Identifier
 
 The method specific name string is composed of an optional Factom network
 identifier with a :separator, followed by a hex-encoded Factom chain ID.
@@ -127,15 +153,19 @@ you leave out the factom-network, "mainnet" is assumed typically, but in reality
 is left up to the resolver. If the resolver is only hooked up to a specific
 network it will only look at that network.
 
+
+
 Example factom DIDs:
 
 > did:factom:f26e1c422c657521861ced450442d0c664702f49480aec67805822edfcfee758
 > did:factom:mainnet:f26e1c422c657521861ced450442d0c664702f49480aec67805822edfcfee758
 > did:factom:testnet:f26e1c422c657521861ced450442d0c664702f49480aec67805822edfcfee758
 
+
+
 ## DID Management (CRUD operations, entry structures, validation rules)
 
-###Creation
+### Creation
 Purpose: A valid entry of this type creates the DID document, located at the DID
 URI: `did:factom:{chain-id}`
 
@@ -160,13 +190,14 @@ Resolution Rules:
 
 **ExtIDs**
 
-> [0] = "DIDManagement"                         // UTF-8 encoded
-> [1] = <entry schema version tag>              // UTF-8 encoded (ex: "1.0.0") semantic versioned
-> [2] = <misc tags / identity names>            // UTF-8 encoded (2nd ExtID must be unique (recommended 32 byte nonce))
-> ...
-> [n] = <misc tags / identity names>            // UTF-8 encoded
+```[0] = "DIDManagement"                         // UTF-8 encoded
+[1] = <entry schema version tag>    // UTF-8 encoded (ex: "1.0.0") semantic versioned
+[2] = <misc tags / identity names>  // UTF-8 encoded (2nd ExtID must be unique (recommended 32 byte nonce))
+...
+[n] = <misc tags / identity names>  // UTF-8 encoded
+```
 
----
+
 
 
  **Content** *(note: always minified)*
@@ -208,6 +239,8 @@ Resolution Rules:
 }
  ```
 
+
+
 #### Example
 
 *ExtIDs*
@@ -228,7 +261,7 @@ Resolution Rules:
       "type": "Ed25519VerificationKey",
       "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
       "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
-      "priority": 1
+      "priorityRequirement": 1
     }
   ],
   "didKey": [
@@ -260,7 +293,6 @@ Resolution Rules:
 }
  ```
 
-
 *Notes:*
 
 -   Explicitly did not include "\@context" in the content as the resolver can
@@ -269,11 +301,12 @@ Resolution Rules:
     -   Our DID Method Spec version determines the DID Spec version that we
         return 
 
-	  
-	
 
 ___
+
+
 ### Update
+
 Purpose: A valid entry of this type signifies an attempt to update the DID
 Document's (public keys, authentication, service endpoints)
 
@@ -311,38 +344,45 @@ Resolution Rules:
 #### Entry Structure
 *ExtIDs*
 
-> [0] = "DIDUpdate"                                                   // UTF-8 encoded
-> [1] = <entry schema version tag>                                    // UTF-8 encoded
-> [2] = <full key identifier of the management key used for signing>  // UTF-8 encoded (signature type inferred from key type)
-> [3] = <signature over sha256d(all other ext-ids + content)>         // raw bytes, N bytes (signature type dependent)
-> [4] = <misc tags>                                                   // encoding not enforced
-> ...
-> [n] = <misc tags>                                                   // encoding not enforced
+```[0] = "DIDUpdate"                                                   // UTF-8 encoded
+[1] = <entry schema version tag>                                    // UTF-8 encoded
+[2] = <full key identifier of the management key used for signing>  // UTF-8 encoded (signature type inferred from key type)
+[3] = <signature over sha256d(all other ext-ids + content)>         // raw bytes, N bytes (signature type dependent)
+[4] = <misc tags>                                                   // encoding not enforced
+...
+[n] = <misc tags>                                                   // encoding not enforced```
+```
+
+
 
 *Content*
 ```json
 {
     "revoke": {
-        "managementKey": array of management key identifiers to retire (optional),
-        "didKey": array of other key identifiers to retire (optional),
-        "service": array of service ids to retire (optional)
-    } // optional,
+        "managementKey": "<array of management key identifiers to retire (optional)>",
+        "didKey": "<array of other key identifiers to retire (optional)>",
+        "service": "<array of service ids to retire (optional)>"
+    }, // optional
     "add": {
-        "managementKey": array of management key objects to add (optional),
-        "didKey": array of other key object to add (optional),
-        "service": array of service object to add (optional)
+        "managementKey": "array of management key objects to add (optional)",
+        "didKey": "array of other key object to add (optional)",
+        "service": "array of service object to add (optional)"
     } // optional
 }
 
 ```
 
-####Example
+
+
+#### Example
+
 *ExtIDs*
+
 ``` 
-[0] = "DIDUpdate"                                                                                 // UTF-8 encoded
-[1] = "1.0.0"                                                                                     // UTF-8 encoded
+[0] = "DIDUpdate"                                                        // UTF-8 encoded
+[1] = "1.0.0"                                                            // UTF-8 encoded
 [2] = "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-1"  // UTF-8 encoded
-[3] = 0xf88ed15e98b8cb8c256b79242df8d00c042d70330a7edf56c772079256b79242                          // raw bytes, N bytes
+[3] = 0xf88ed15e98b8cb8c256b79242df8d00c042d70330a7edf56c772079256b79242 // raw bytes, N bytes
 ```
 
 *Content*
@@ -390,7 +430,10 @@ Resolution Rules:
 }
 ```
 
+
+
 ### Method Spec Version Upgraded
+
 Purpose: A valid entry of this type signifies that the chain should stop being
 parsed using its currently declared version, and from this point forward be
 parsed according to the rules of the new version.
@@ -412,13 +455,16 @@ Resolution Rules:
 #### Entry Structure
 
 *ExtIDs*
-> [0] = "DIDMethodVersionUpgrade"                                    // UTF-8 encoded
-> [1] = <entry schema version tag>                                   // UTF-8 encoded
-> [2] = <full key identifier of the management key used for signing> // UTF-8 encoded (signature type inferred from key type)
-> [3] = <signature over sha256d(all other ext-ids + content)>        // raw bytes, N bytes (signature type dependent)
-> [4] = <misc tags>                                                  // encoding not enforced
-> ….
-> [n] = <misc tags>                                                  // encoding not enforced
+```[0] = "DIDMethodVersionUpgrade"                                    // UTF-8 encoded
+[1] = <entry schema version tag>                                   // UTF-8 encoded
+[2] = <full key identifier of the management key used for signing> // UTF-8 encoded (signature type inferred from key type)
+[3] = <signature over sha256d(all other ext-ids + content)>        // raw bytes, N bytes (signature type dependent)
+[4] = <misc tags>                                                  // encoding not enforced
+….
+[n] = <misc tags>                                                  // encoding not enforced
+```
+
+
 
 *Content*
 ```json
@@ -439,12 +485,15 @@ Resolution Rules:
 *Content*
 ```json
 {
-  "didMethodVersion": "0.2.0",
+  "didMethodVersion": "0.2.0"
 }
 ```
 ____
 
+
+
 ### Deactivation
+
 Purpose: A valid entry of this type signifies the deactivation of the identity
 and the termination of all further chain parsing
 
@@ -461,21 +510,30 @@ Resolution Rules:
 
 -   Entry hash serves as the nonce and MUST be unique
 
+
+
 #### Entry Structure
+
 *ExtIDs*
 
-> [0] = "DIDDeactivation"                                             // UTF-8 encoded
-> [1] = <entry schema version tag>                                    // UTF-8 encoded
-> [2] = <full key identifier of the management key used for signing>  // UTF-8 encoded (signature type inferred from key type)
-> [3] = <signature over sha256d(all other ext-ids + content)>         // raw bytes, N bytes (signature type dependent)
-> [4] = <misc tags>                                                   // encoding not enforced
-> ...
-> [n] = <misc tags>                                                   // encoding not enforced
+```
+[1] = <entry schema version tag>                                    // UTF-8 encoded
+[2] = <full key identifier of the management key used for signing>  // UTF-8 encoded (signature type inferred from key type)
+[3] = <signature over sha256d(all other ext-ids + content)>         // raw bytes, N bytes (signature type dependent)
+[4] = <misc tags>                                                   // encoding not enforced
+...
+[n] = <misc tags>                                                   // encoding not enforced
+```
+
+
 
 *Content*
 **<none>**
 
+
+
 #### Example
+
 *ExtIDs*
 
 ```
@@ -488,6 +546,9 @@ Resolution Rules:
 *Content*
 
 <none>
+
+------
+
 
 
 ### Public Keys
@@ -542,6 +603,8 @@ encoding to [6] and [7]. Similar to publicKeyBase58, the base64 and hex variants
 of the field name for storing the public keys represent the widespread base64
 and hex encodings of the public keys.
 
+
+
 ### Authentication
 
 The authentication values specify public keys, which can be used specifically
@@ -552,20 +615,20 @@ To reference an existing key, the id of the key must be used. To add a new key,
 the same format as the one for publicKey must be used. Below is an example,
 which demonstrates both usages:  
 
+```
 “authentication”: [  
-// this key is referenced, it may be used for other purposes besides
-authentication  
-“did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#keys-1”,  
-// this key is embedded and may \*only\* be used for authentication  
-{  
-“id”:  
-“did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#keys-2”,  
-“type”: “Ed25519VerificationKey”,  
-“controller”:  
-“did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b”,  
-“publicKeyBase58”: “H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV”  
-}  
+	// this key is referenced, it may be used for other purposes besides authentication  
+	“did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#keys-1”,  
+	// this key is embedded and may \*only\* be used for authentication  
+	{  
+		“id”:  
+		“did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#keys-2”,  
+		“type”: “Ed25519VerificationKey”,  
+		“controller”: “did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b”,  
+		“publicKeyBase58”: “H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV”  
+	}  
 ]
+```
 
 
 
@@ -583,24 +646,30 @@ Below are two examples of service entries, adapted from [2], with the first one
 containing only the mandatory fields for the service and the second one
 containing additional data:
 
-“service”: [{  
-“id”:
-“did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#cr”,  
-“type”: “CredentialRepositoryService”,  
-“serviceEndpoint”: “https://repository.example.com/service/8377464”  
-},  
-{  
-“id”:
-“did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#inbox”  
-“type”: “SocialWebInboxService”,  
-“serviceEndpoint”: "https://social.example.com/83hfh37dj",  
-“description”: “My public social inbox”,  
-“spamCost”: {  
-“amount”: “0.50”,  
-“currency”: “USD”  
-}]
+```
+“service”: [
+	{  
+		“id”:
+		“did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#cr”,  
+		“type”: “CredentialRepositoryService”,  
+		“serviceEndpoint”: “https://repository.example.com/service/8377464”  
+	},
+	{  
+		“id”: “did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#inbox”  
+		“type”: “SocialWebInboxService”,  
+		“serviceEndpoint”: "https://social.example.com/83hfh37dj",  
+		“description”: “My public social inbox”,  
+		“spamCost”: {  
+			“amount”: “0.50”,  
+			“currency”: “USD”
+		}
+	}
+]
+```
 
-## DID Resolution
+
+
+## DID Resolution (todo: update for v2)
 
 
 The resolution of a DID is the process of constructing a DID document by
@@ -637,10 +706,14 @@ the rules, which must be followed by resolvers for the Factom DID method:
     in its revoke section, all respective instances must be revoked (including
     duplicates with the same ID)
 
+
+
 **Security Considerations**
 ===========================
 
 *TODO*
+
+
 
 **Recovery From Key Compromise**
 ================================
