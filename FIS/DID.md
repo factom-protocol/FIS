@@ -20,13 +20,9 @@ title: Factom Decentralized Identifiers (DID) Specification
 
 Version 1.0
 
-
-##Introduction
-This specification describes [decentralized
-identifiers](https://w3c-ccg.github.io/did-spec/) (DIDs) for the Factom
-blockchain. DIDs are an emerging effort for establishing a standard for
-self-sovereign digital identities from the W3C [Credentials Community
-Group](https://www.w3.org/community/credentials/). They provide entities with a
+## Introduction
+This specification describes [decentralized identifiers](https://w3c-ccg.github.io/did-spec/) (DIDs) for the Factom blockchain. DIDs are an emerging effort for establishing a standard for
+self-sovereign digital identities from the W3C [Credentials Community Group](https://www.w3.org/community/credentials/). They provide entities with a
 means to self-manage cryptographic key material and other metadata about their
 identity. These data can be used by the entity to authenticate itself to third
 parties or to request authorization for access to a given resource. In addition
@@ -39,7 +35,7 @@ as the terminology and the basic building blocks of a decentralized identifier.
 Please note that implementers of this spec are expected to have knowledge of the
 W3C specification.
 
-###Actors
+### Actors
 
 There are three main entities involved in a DID system: a Controller, a Relying
 Party and a Subject.
@@ -57,20 +53,19 @@ themselves as the Subject. When the Subject is not the Controller, the
 Controller is said to be taking action on behalf of the Subject, such as when an
 employee manages a DID on behalf of their employer or a parent uses a DID on
 behalf of their child. [1]
-  
 
-###DID Schemes
+### DID Schemes
 A DID scheme is the formal syntax, which defines how a decentralized identifier
 should look like. The generic DID scheme is defined in [2]. A DID method
 specification, such as the one in this document, defines a specific DID scheme,
 conforming to the generic one in [2], and utilized in a specific DID method.
 
-###DID Methods
+### DID Methods
 A definition of how a specific DID scheme can be implemented on a specific
 distributed ledger or network, including the precise method(s) by which DIDs and
 DID Documents can be read, written, updated and deactivated [2].
 
-###DID Documents
+### DID Documents
 A set of data that describes a DID, including mechanisms, such as public keys
 and pseudonymous biometrics, that an entity can use to authenticate itself as
 the DID. A DID Document may also contain other
@@ -80,15 +75,14 @@ documents are graph-based data structures that are typically expressed using
 [JSON-LD](https://w3c-ccg.github.io/did-spec/#bib-json-ld), but may be expressed
 using other compatible graph-based data formats [2].
 
-###DID Resolvers & Registrars
-A DID system has two main software components: a
-[resolver](https://github.com/decentralized-identity/universal-resolver) and a
-[registrar](https://github.com/decentralized-identity/universal-registrar/blob/master/docs/api-documentation.md).
-The role of the resolver is to return the valid DID document for a given DID. On
-the other hand, the role of the registrar is to allow the creation of new DIDs
+### DID Resolvers & Registrars
+A DID system has two main software components: a [resolver](https://github.com/decentralized-identity/universal-resolver) and a [registrar](https://github.com/decentralized-identity/universal-registrar/blob/master/docs/api-documentation.md).
+The role of the resolver is to return the valid DID document for a given DID.
+
+On the other hand, the role of the registrar is to allow the creation of new DIDs
 and DID documents.
 
-###DID Format
+### DID Format
 The DID format is inspired from the basic pattern used in the specification of
 [URNs](https://tools.ietf.org/html/rfc8141):
 
@@ -103,10 +97,9 @@ All DID method specifications **must** define the format and generation of the
 DID method specific string. Note that this string **must** be unique in the
 namespace of that DID method [3].
 
+## Factom DID Method
 
-##Factom DID Method
-
-###DID Method Name
+### DID Method Name
 The namestring that shall identify this DID method is: factom
 
 A DID that uses this method MUST begin with the following prefix: did:factom.
@@ -163,9 +156,10 @@ Resolution Rules:
     supported)
 -   MUST have at least one management key at priority 0
 
-####Entry Structure:
+#### Entry Structure:
 
 **ExtIDs**
+
 > [0] = "DIDManagement"                         // UTF-8 encoded
 > [1] = <entry schema version tag>              // UTF-8 encoded (ex: "1.0.0") semantic versioned
 > [2] = <misc tags / identity names>            // UTF-8 encoded (2nd ExtID must be unique (recommended 32 byte nonce))
@@ -173,8 +167,8 @@ Resolution Rules:
 > [n] = <misc tags / identity names>            // UTF-8 encoded
 
 ---
- 
- 
+
+
  **Content** *(note: always minified)*
  ```json
 {
@@ -212,17 +206,19 @@ Resolution Rules:
     ...
   ]
 }
-```
+ ```
 
-####Example
+#### Example
 
-ExtIDs
+*ExtIDs*
+
 ```
 [0] = "DIDManagement"
 [1] = "1.0.0"
 [2] = "d9fc30722f88ed15e98b8c256b79242df8d00c042d703306c7720796d4f0f7cd"  // UTF-8 32 bytes of randomness
 ```
-Content
+*Content*
+
  ```json
 {
   "didMethodVersion": "0.1.0",
@@ -262,7 +258,7 @@ Content
     }
   ]
 }
-```
+ ```
 
 
 *Notes:*
@@ -274,10 +270,10 @@ Content
         return 
 
 	  
-	  
+	
 
 ___
-###Update
+### Update
 Purpose: A valid entry of this type signifies an attempt to update the DID
 Document's (public keys, authentication, service endpoints)
 
@@ -310,10 +306,11 @@ Resolution Rules:
 
     -   A key being removed must be currently active
 
-				
+		​		
 
-####Entry Structure
+#### Entry Structure
 *ExtIDs*
+
 > [0] = "DIDUpdate"                                                   // UTF-8 encoded
 > [1] = <entry schema version tag>                                    // UTF-8 encoded
 > [2] = <full key identifier of the management key used for signing>  // UTF-8 encoded (signature type inferred from key type)
@@ -393,7 +390,7 @@ Resolution Rules:
 }
 ```
 
-###Method Spec Version Upgraded
+### Method Spec Version Upgraded
 Purpose: A valid entry of this type signifies that the chain should stop being
 parsed using its currently declared version, and from this point forward be
 parsed according to the rules of the new version.
@@ -412,7 +409,7 @@ Resolution Rules:
 
 -   Entry hash serves as the nonce and MUST be unique
 
-####Entry Structure
+#### Entry Structure
 
 *ExtIDs*
 > [0] = "DIDMethodVersionUpgrade"                                    // UTF-8 encoded
@@ -430,8 +427,9 @@ Resolution Rules:
 }
 ```
 
-####Example
+#### Example
 *ExtIDs*
+
 ```
 [0] = "DIDMethodVersionUpgrade"
 [1] = "1.0.0"
@@ -446,7 +444,7 @@ Resolution Rules:
 ```
 ____
 
-###Deactivation
+### Deactivation
 Purpose: A valid entry of this type signifies the deactivation of the identity
 and the termination of all further chain parsing
 
@@ -463,8 +461,9 @@ Resolution Rules:
 
 -   Entry hash serves as the nonce and MUST be unique
 
-####Entry Structure
+#### Entry Structure
 *ExtIDs*
+
 > [0] = "DIDDeactivation"                                             // UTF-8 encoded
 > [1] = <entry schema version tag>                                    // UTF-8 encoded
 > [2] = <full key identifier of the management key used for signing>  // UTF-8 encoded (signature type inferred from key type)
@@ -476,9 +475,9 @@ Resolution Rules:
 *Content*
 **<none>**
 
-
-####Example
+#### Example
 *ExtIDs*
+
 ```
 [0] = "DIDDeactivation"
 [1] = "1.0.0"
@@ -487,6 +486,8 @@ Resolution Rules:
 ```
 
 *Content*
+
+<none>
 
 
 ### Public Keys
@@ -550,7 +551,7 @@ publicKey or freshly defined ones.
 To reference an existing key, the id of the key must be used. To add a new key,
 the same format as the one for publicKey must be used. Below is an example,
 which demonstrates both usages:  
-  
+
 “authentication”: [  
 // this key is referenced, it may be used for other purposes besides
 authentication  
@@ -566,7 +567,9 @@ authentication
 }  
 ]
 
-### <br>Services
+
+
+### Services
 
 The service values specify endpoints, which can be used to interact with the DID
 subject. Each service endpoint must include id, type, and serviceEndpoint
@@ -597,7 +600,7 @@ containing additional data:
 “currency”: “USD”  
 }]
 
-##DID Resolution
+## DID Resolution
 
 
 The resolution of a DID is the process of constructing a DID document by
@@ -656,15 +659,15 @@ store their keys in various levels of security. For example:
 If the hot key is lost or compromised, the other two higher priority keys are
 able to authorize a replacement.
 
-##Privacy Considerations
+## Privacy Considerations
 
 *TODO*
 
-##Performance Considerations
+## Performance Considerations
 
 *TODO*
 
-##References
+## References
 
 
 [1] <https://w3c-ccg.github.io/did-use-cases/>  
