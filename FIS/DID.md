@@ -2,7 +2,7 @@
 | ---- | -------------------------------------- | ------ | ---------- | -------------------------------------------------------- | -------- |
 | -    | Factom Decentralized Identifiers (DID) | Draft  | Identities | Factomatic LLC, Sphereon BV, Factom Inc (see list below) | 20190701 |
 
-_Version 1.0 authors: Factomatic LLC: Valentin Ganev & Peter Asenov, Sphereon BV: Niels Klomp, Factom Inc: Carl Diclimenti, Sam Barnes_
+_Version 1.0 authors: Factomatic LLC: Valentin Ganev & Peter Asenov, Sphereon BV: Niels Klomp, Factom Inc: Carl DiClementi, Sam Barnes_
 
 # Summary
 
@@ -201,7 +201,7 @@ Resolution Rules:
 
 
  **Content** *(note: always minified)*
- ```json
+ ```
 {
   "didMethodVersion": <new method spec version tag as string>,
   "managementKey": [
@@ -210,7 +210,7 @@ Resolution Rules:
       "type": <key type ("Ed25519VerificationKey", "ECDSASecp256k1VerificationKey", "RSAVerificationKey")>,
       "controller": <DID which controls this key>,
       "publicKeyBase58": <public key value>,
-      "priority": <positive integer priority>,
+      "priorityRequirement": <positive integer priority>,
       "bip44": <bip44 derivation path string> // (optional)
     },
     ...
@@ -269,7 +269,7 @@ Resolution Rules:
       "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1",
       "type": "Ed25519VerificationKey",
       "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
-      "publicKeyBase58": "3uVAjZpfMv6gmMNam3uVAjZpfkcJCwDwnZn6MNam3uVA"
+      "publicKeyBase58": "3uVAjZpfMv6gmMNam3uVAjZpfkcJCwDwnZn6MNam3uVA",
       "purpose": ["publicKey", "authentication"]
     },
     {
@@ -297,10 +297,9 @@ Resolution Rules:
 
 -   Explicitly did not include "\@context" in the content as the resolver can
     add this when creating the DID document for a given schema version
-
-    -   Our DID Method Spec version determines the DID Spec version that we
+-   Our DID Method Spec version determines the DID Spec version that we
         return 
-
+    
 
 ___
 
@@ -356,7 +355,7 @@ Resolution Rules:
 
 
 *Content*
-```json
+```
 {
     "revoke": {
         "managementKey": "<array of management key identifiers to retire (optional)>",
@@ -418,7 +417,7 @@ Resolution Rules:
         }],
         "service": [{
            "id”: "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#inbox",
-           "type”: "SocialWebInboxService",
+           "type": "SocialWebInboxService",
            "serviceEndpoint": "https://social.example.com/83hfh37dj",
            "description": "My public social inbox",
            "spamCost": {
@@ -467,7 +466,7 @@ Resolution Rules:
 
 
 *Content*
-```json
+```
 {
   "didMethodVersion": <new method spec version tag as a string>
 }
