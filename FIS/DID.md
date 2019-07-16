@@ -229,9 +229,9 @@ Resolution Rules:
   ],
   "service": [ // (optional)
     {
-      "id”: <service identifier>,
-      "type”: <service type>,
-      "serviceEndpoint”: <URL for service endpoint>,
+      "id": <service identifier>,
+      "type": <service type>,
+      "serviceEndpoint": <URL for service endpoint>,
       "priorityRequirement": <positive integer priority required to remove this service (optional)>
     },
     ...
@@ -416,7 +416,7 @@ Resolution Rules:
           "priorityRequirement": 2
         }],
         "service": [{
-           "id”: "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#inbox",
+           "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#inbox",
            "type": "SocialWebInboxService",
            "serviceEndpoint": "https://social.example.com/83hfh37dj",
            "description": "My public social inbox",
@@ -587,9 +587,9 @@ where:
 The type field can be any value, which identifies the type of signature to be
 used and is left for implementers of this specification to decide. Good examples
 of values are widespread or unambiguous abbreviations of different signatures
-schemes, such as “Ed25519” or “ECDSASecp256k1”, while bad examples include
-“EdDSA” (ambiguous as it specifies the signature scheme, but does not specify
-the elliptic curve over which the keys are generated) or “Secp256k1” (ambiguous
+schemes, such as "Ed25519" or "ECDSASecp256k1", while bad examples include
+"EdDSA" (ambiguous as it specifies the signature scheme, but does not specify
+the elliptic curve over which the keys are generated) or "Secp256k1" (ambiguous
 as it specifies the elliptic curve, but does not specify the signature scheme).
 
 The controller field must be a valid DID.
@@ -615,16 +615,16 @@ the same format as the one for publicKey must be used. Below is an example,
 which demonstrates both usages:  
 
 ```
-“authentication”: [  
+"authentication": [  
 	// this key is referenced, it may be used for other purposes besides authentication  
-	“did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#keys-1”,  
+	"did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#keys-1",  
 	// this key is embedded and may \*only\* be used for authentication  
 	{  
-		“id”:  
-		“did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#keys-2”,  
-		“type”: “Ed25519VerificationKey”,  
-		“controller”: “did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b”,  
-		“publicKeyBase58”: “H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV”  
+		"id":  
+		"did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#keys-2",  
+		"type": "Ed25519VerificationKey",  
+		"controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",  
+		"publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"  
 	}  
 ]
 ```
@@ -646,21 +646,21 @@ containing only the mandatory fields for the service and the second one
 containing additional data:
 
 ```
-“service”: [
+"service": [
 	{  
-		“id”:
-		“did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#cr”,  
-		“type”: “CredentialRepositoryService”,  
-		“serviceEndpoint”: “https://repository.example.com/service/8377464”  
+		"id":
+		"did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#cr",  
+		"type": "CredentialRepositoryService",  
+		"serviceEndpoint": "https://repository.example.com/service/8377464"  
 	},
 	{  
-		“id”: “did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#inbox”  
-		“type”: “SocialWebInboxService”,  
-		“serviceEndpoint”: "https://social.example.com/83hfh37dj",  
-		“description”: “My public social inbox”,  
-		“spamCost”: {  
-			“amount”: “0.50”,  
-			“currency”: “USD”
+		"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#inbox"  
+		"type": "SocialWebInboxService",  
+		"serviceEndpoint": "https://social.example.com/83hfh37dj",  
+		"description": "My public social inbox",  
+		"spamCost": {  
+			"amount": "0.50",  
+			"currency": "USD"
 		}
 	}
 ]
