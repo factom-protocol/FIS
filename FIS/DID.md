@@ -179,7 +179,7 @@ specification could migrate to a Factom-specific context.
 The format of the publicKey, authentication and service values are described in
 later sections in this document.
 
-Resolution Rules:
+Resolution Rules for the Entry Structure:
 
 -   MUST be the first entry of the chain
 -   MUST have a valid didMethodVersion specified (currently only "1.0.0"
@@ -190,7 +190,8 @@ Resolution Rules:
 
 **ExtIDs**
 
-```[0] = "DIDManagement"                         // UTF-8 encoded
+```
+[0] = "DIDManagement"               // UTF-8 encoded
 [1] = <entry schema version tag>    // UTF-8 encoded (ex: "1.0.0") semantic versioned
 [2] = <misc tags / identity names>  // UTF-8 encoded (2nd ExtID must be unique (recommended 32 byte nonce))
 ...
@@ -210,7 +211,8 @@ Resolution Rules:
       "type": <key type ("Ed25519VerificationKey", "ECDSASecp256k1VerificationKey", "RSAVerificationKey")>,
       "controller": <DID which controls this key>,
       "publicKeyBase58": <public key value>,
-      "priorityRequirement": <positive integer priority>,
+      "priority": <optional positive integer priority>,
+      "priorityRequirement": <optional positive integer priority required to remove this key>,
       "bip44": <bip44 derivation path string> // (optional)
     },
     ...
@@ -261,7 +263,7 @@ Resolution Rules:
       "type": "Ed25519VerificationKey",
       "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
       "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
-      "priorityRequirement": 1
+      "priority": 1
     }
   ],
   "didKey": [
@@ -343,7 +345,8 @@ Resolution Rules:
 #### Entry Structure
 *ExtIDs*
 
-```[0] = "DIDUpdate"                                                   // UTF-8 encoded
+```
+[0] = "DIDUpdate"                                                   // UTF-8 encoded
 [1] = <entry schema version tag>                                    // UTF-8 encoded
 [2] = <full key identifier of the management key used for signing>  // UTF-8 encoded (signature type inferred from key type)
 [3] = <signature over sha256d(all other ext-ids + content)>         // raw bytes, N bytes (signature type dependent)
@@ -454,7 +457,8 @@ Resolution Rules:
 #### Entry Structure
 
 *ExtIDs*
-```[0] = "DIDMethodVersionUpgrade"                                    // UTF-8 encoded
+```
+[0] = "DIDMethodVersionUpgrade"                                    // UTF-8 encoded
 [1] = <entry schema version tag>                                   // UTF-8 encoded
 [2] = <full key identifier of the management key used for signing> // UTF-8 encoded (signature type inferred from key type)
 [3] = <signature over sha256d(all other ext-ids + content)>        // raw bytes, N bytes (signature type dependent)
@@ -552,37 +556,63 @@ Resolution Rules:
 
 ### Public Keys
 
-The didKey values are the cryptographic keying material that is associated with
+The *didKey* values are the cryptographic keying material that is associated with
 the DID subject. They are used for digital signatures, encryption and other
 cryptographic operations, which in turn are the basis for purposes such as
 authentication or establishing secure communication with service endpoints. In
 addition, public keys may play a role in authorization mechanisms of DID CRUD
 operations.
 
-The managementKey are quite similar except these do not end up in the DID
+The *managementKey* values are quite similar except these do not end up in the DID
 document and are being used to perform the CRUD operation on the Factom
 blockchain itself.
 
-A single key has the following schema:
+A single example key has the following schema on Factom:
+
 ```json
-{  
-  "id": "<a valid DID with a [fragment](https://w3c-ccg.github.io/did-spec/#dfn-did-fragment) for identifying the key (required)>",  
-  "type": "<the type of the key (required)>",  
-  "controller": "<the controller of the key (required)>",  
-  "publicKeyBase58": "<the public key, encoded in base58 (required)>"  
-}
+didKey: [
+{	
+		"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1",
+	"type": "Ed25519VerificationKey",
+	"controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
+	"publicKeyBase58": "3uVAjZpfMv6gmMNam3uVAjZpfkcJCwDwnZn6MNam3uVA",
+	"purpose": ["publicKey", "authentication"],
+    "priorityRequirement": 2
+}]
 ```
 
-The id must be a valid DID with the format `did:factom:CHAIN_ID\#KEY_IDENTIFIER`,
+
+
+Fully resolved into the DID document would look like:
+
+```json
+"publicKey": [
+{  
+	"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1",
+	"type": "Ed25519VerificationKey",
+	"controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
+	"publicKeyBase58": "3uVAjZpfMv6gmMNam3uVAjZpfkcJCwDwnZn6MNam3uVA",
+}],
+
+"authentication": [
+    "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1" // publicKey reference as it has more than one purpose
+]
+
+```
+
+The id must be a valid DID with the format `did:factom:CHAIN_ID#KEY_IDENTIFIER`,
 where:
 
 
--   **CHAIN_ID** is the ID of the current chain
+- **CHAIN_ID** is the ID of the chain
+
 -   **KEY_IDENTIFIER** is a sequence of up to 32 lowercase alphanumeric characters,
     plus hyphen, without spaces (i.e. KEY_IDENTIFIER matches the regular
     expression \^[a-z0-9-]{1,32}\$). The intended usage of KEY_IDENTIFIER is to
     serve as a nickname/alias for the key and it should be unique across the
-    keys defined in the DID document.
+    keys defined in the fully resolved DID document. Reuse of the key identifier using future new key material is allowed. What is not permitted is having 2 or more public keys with the same key identifier in the same valid DID document at the same time. It is up to the implementer to decide whether they want to reuse key Identifiers or use unique key identifiers for every change in Public Key data.
+    
+    
 
 The type field can be any value, which identifies the type of signature to be
 used and is left for implementers of this specification to decide. Good examples
@@ -592,7 +622,7 @@ schemes, such as "Ed25519" or "ECDSASecp256k1", while bad examples include
 the elliptic curve over which the keys are generated) or "Secp256k1" (ambiguous
 as it specifies the elliptic curve, but does not specify the signature scheme).
 
-The controller field must be a valid DID.
+The controller field must be a valid DID when specified.
 
 Note that the public key is stored in the publicKeyBase58 field using a base58
 encoding. Other valid formats for storing the public keys are: publicKeyPem,
@@ -613,6 +643,24 @@ publicKey or freshly defined ones.
 To reference an existing key, the id of the key must be used. To add a new key,
 the same format as the one for publicKey must be used. Below is an example,
 which demonstrates both usages:  
+
+
+
+```
+didKey: [
+{	
+		"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#keys-2",
+	"type": "Ed25519VerificationKey",
+	"controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
+	"publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
+	"purpose": ["authentication"],
+    "priorityRequirement": 1
+}]
+```
+
+
+
+
 
 ```
 "authentication": [  
@@ -675,7 +723,7 @@ The resolution of a DID is the process of constructing a DID document by
 sequentially scanning the entries recorded in the DID chain. Next, we outline
 the rules, which must be followed by resolvers for the Factom DID method:
 
--   A CreateDID entry must appear only as the first entry in a chain
+-   A DIDManagement entry must appear only as the first entry in a chain
 
 -   UpdateDID and DeactivateDID entries must be signed by an unrevoked key
     defined in publicKey. The key must be referenced by its KEY_IDENTIFIER in
