@@ -6,7 +6,7 @@ _Version 1.0 authors: Factomatic LLC: Valentin Ganev & Peter Asenov, Sphereon BV
 
 # Summary
 
-This proposal contains the interoperability specifications for products creating, reading (resolving) updating and deactivating Decentralized Identifiers on top of the Factom Protocol. This specification is not about other products wanting to use DIDs for their specific purpose, like signing or voting. This document describes the low level data structures and rules for DIDs on Factom itself.
+This proposal contains the interoperability specifications for products creating, reading (resolving) updating and deactivating Decentralized Identifiers on top of the Factom Protocol. This specification is not about other products wanting to use DIDs for their specific purpose, like signing or voting. This document describes the low level data structures and rules for DIDs, DID documents, resolution and registration on Factom itself.
 
 ___
 
@@ -14,7 +14,7 @@ ___
 
 # Motivation
 
-Decentralized Identifiers are a cross ledger solution to support identities. The Factom Protocol is ideally suited to store DIDs. This specification is the first step in creating a single specification for maximum interoperability with regards to identities across products and solutions on top of the Factom protocol.
+Decentralized Identifiers are a cross ledger solution to support self sovereign identities. The Factom Protocol is ideally suited to store DIDs. This specification is the first step in creating a single specification for maximum interoperability with regards to identities across products and solutions on top of the Factom Protocol.
 
 ___
 
@@ -31,7 +31,8 @@ title: Factom Decentralized Identifiers (DID) Specification
 Version 1.0
 
 ## Introduction
-This specification describes [decentralized identifiers](https://w3c-ccg.github.io/did-spec/) (DIDs) for the Factom blockchain. DIDs are an emerging effort for establishing a standard for
+This specification describes [decentralized identifiers](https://w3c-ccg.github.io/did-spec/) (DIDs) for the Factom blockchain.
+DIDs are an emerging effort for establishing a standard for
 self-sovereign digital identities from the W3C [Credentials Community Group](https://www.w3.org/community/credentials/). They provide entities with a
 means to self-manage cryptographic key material and other metadata about their
 identity. These data can be used by the entity to authenticate itself to third
@@ -163,9 +164,24 @@ Example factom DIDs:
 
 
 
-## DID Management (CRUD operations, entry structures, validation rules)
+### DID and id's in Factom entries
 
-### Creation
+The id must be a valid DID with the format `factom-did#key-identifier`, It is allowed to only use the `#key-identifier` whenever the id is about the current DID itself.
+where:
+
+- **factomd-did** is the DID on factor, containing a factom-chain-id. This part it optional as long as the id is about the DID itself. A fully resolved DID document will however always contain the factom-did.
+
+- **key-identifier** is a sequence of up to 32 lowercase alphanumeric characters,
+  plus hyphen, without spaces (i.e. KEY_IDENTIFIER matches the regular
+  expression \^[a-z0-9-]{1,32}\$). The intended usage of KEY_IDENTIFIER is to
+  serve as a nickname/alias for the key and it should be unique across the
+  keys defined in the fully resolved DID document. Reuse of the key identifier using future new key material is allowed. What is not permitted is having 2 or more public keys with the same key identifier in the same valid DID document at the same time. It is up to the implementer to decide whether they want to reuse key Identifiers or use unique key identifiers for every change in Public Key data.
+
+  
+
+## DID CRUD operations and validation rules
+
+### Creation (Register)
 Purpose: A valid entry of this type creates the DID document, located at the DID
 URI: `did:factom:{chain-id}`
 
@@ -201,10 +217,10 @@ Resolution Rules for the Entry Structure:
 
 
 
- **Content** *(note: always minified)*
- ```
+ **Content** *(note:  can be minified)*
+ ```json
 {
-  "didMethodVersion": <new method spec version tag as string>,
+  "didMethodVersion": <method spec version tag as string>,
   "managementKey": [
     {
       "id": <key identifier>,
@@ -272,7 +288,8 @@ Resolution Rules for the Entry Structure:
       "type": "Ed25519VerificationKey",
       "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
       "publicKeyBase58": "3uVAjZpfMv6gmMNam3uVAjZpfkcJCwDwnZn6MNam3uVA",
-      "purpose": ["publicKey", "authentication"]
+      "purpose": ["publicKey", "authentication"],
+      "priorityRequirement": 1
     },
     {
       "id": "did:factom:76c58916c58916ec258f246851bea091d14d4247a2fc3e18694461b14247a2f#authentication-1",
@@ -280,7 +297,7 @@ Resolution Rules for the Entry Structure:
       "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
       "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
       "purpose": ["authentication"],
-      "priorityRequirement": 1,
+      "priorityRequirement": 2,
       "bip44": "m / 44' / 0' / 0' / 0 / 0"
     }
   ],
@@ -301,7 +318,7 @@ Resolution Rules for the Entry Structure:
     add this when creating the DID document for a given schema version
 -   Our DID Method Spec version determines the DID Spec version that we
         return 
-    
+  
 
 ___
 
@@ -309,7 +326,7 @@ ___
 ### Update
 
 Purpose: A valid entry of this type signifies an attempt to update the DID
-Document's (public keys, authentication, service endpoints)
+Document's (public keys, authentication, service endpoints). 
 
 Resolution Rules:
 
@@ -321,25 +338,26 @@ Resolution Rules:
     added/replaced/retired (checking the optional priorityRequirement element) 
 
 -   Signer key CAN NOT add another management key at the same priority level,
-    unless it is also removing itself
+    unless it is also revoking itself
 
 -   Signature MUST be over sha256( sha256( ExtID[0] + ExtID[1] + ExtID[2] +
     ExtID[4] + … + ExtID[n] + Content) )
 
--   Entry hash serves as the nonce and MUST be unique
-
+-   The revoke part needs to be processed before the add part.
+    
 -   Adding Keys
 
     -   A key being added must never have been previously active for this
-        identity
+        identity. <!--Why? -->
 
-    -   A key being added must have a key-identifier that has never been
-        previously used for this identity
+-   Revoking Keys
 
--   Removing Keys
+    -   A key being revoked must be currently active <!--Do we consider the DID document invalid? -->
 
-    -   A key being removed must be currently active
-
+	-   For didKeys you optionally can define the purpose. If defined it means to only deactivate the key for the specific purpose. If the purpose field is not used or empy it means to revoke the key for all purposes.
+	
+		
+		
 		​		
 
 #### Entry Structure
@@ -358,12 +376,12 @@ Resolution Rules:
 
 
 *Content*
-```
+```json
 {
     "revoke": {
-        "managementKey": "<array of management key identifiers to retire (optional)>",
-        "didKey": "<array of other key identifiers to retire (optional)>",
-        "service": "<array of service ids to retire (optional)>"
+        "managementKey": "<array of management key id and  purpose objects to revoke (optional)>",
+        "didKey": "<array of other key identifiers to revoke (optional)>",
+        "service": "<array of service ids to revoke (optional)>"
     }, // optional
     "add": {
         "managementKey": "array of management key objects to add (optional)",
@@ -388,18 +406,28 @@ Resolution Rules:
 ```
 
 *Content*
+
 ```json
 {
     "revoke": {
-        "managementKey": [
-          "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-1",
-          "management-2"
+        "managementKey": [ 
+          {
+         		"id" : "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-1"
+        	},
+        	{
+        		"id" : "management-2"
+        	}
         ],
         "didKey": [
-          "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1"
+        	{
+          	"id" : "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1",
+          	"purpose" : ["authentication"]
+        	}
         ],
         "service": [
-          "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#cr"
+        	{
+          	"id" : "#cr"
+          }
         ]
     },
     "add": {
@@ -419,7 +447,7 @@ Resolution Rules:
           "priorityRequirement": 2
         }],
         "service": [{
-           "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#inbox",
+           "id": "#inbox",
            "type": "SocialWebInboxService",
            "serviceEndpoint": "https://social.example.com/83hfh37dj",
            "description": "My public social inbox",
@@ -438,7 +466,7 @@ Resolution Rules:
 
 Purpose: A valid entry of this type signifies that the chain should stop being
 parsed using its currently declared version, and from this point forward be
-parsed according to the rules of the new version.
+parsed according to the rules of the new version. Currently the only used methodSpec version is 0.1.0 and no newer version has been created.
 
 Resolution Rules:
 
@@ -452,7 +480,6 @@ Resolution Rules:
 -   Signature MUST be over sha256( sha256( ExtID[0] + ExtID[1] + ExtID[2] +
     ExtID[4] + … + ExtID[n] + Content) )
 
--   Entry hash serves as the nonce and MUST be unique
 
 #### Entry Structure
 
@@ -495,7 +522,7 @@ ____
 
 
 
-### Deactivation
+### Deactivation (Delete)
 
 Purpose: A valid entry of this type signifies the deactivation of the identity
 and the termination of all further chain parsing
@@ -511,7 +538,6 @@ Resolution Rules:
 -   Signature MUST be over sha256( sha256( ExtID[0] + ExtID[1] + ExtID[2] +
     ExtID[4] + … + ExtID[n] + Content) )
 
--   Entry hash serves as the nonce and MUST be unique
 
 
 
@@ -520,6 +546,7 @@ Resolution Rules:
 *ExtIDs*
 
 ```
+[0] = "DIDDeactivation"
 [1] = <entry schema version tag>                                    // UTF-8 encoded
 [2] = <full key identifier of the management key used for signing>  // UTF-8 encoded (signature type inferred from key type)
 [3] = <signature over sha256d(all other ext-ids + content)>         // raw bytes, N bytes (signature type dependent)
@@ -559,9 +586,7 @@ Resolution Rules:
 The *didKey* values are the cryptographic keying material that is associated with
 the DID subject. They are used for digital signatures, encryption and other
 cryptographic operations, which in turn are the basis for purposes such as
-authentication or establishing secure communication with service endpoints. In
-addition, public keys may play a role in authorization mechanisms of DID CRUD
-operations.
+authentication or establishing secure communication with service endpoints. 
 
 The *managementKey* values are quite similar except these do not end up in the DID
 document and are being used to perform the CRUD operation on the Factom
@@ -572,7 +597,7 @@ A single example key has the following schema on Factom:
 ```json
 didKey: [
 {	
-		"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1",
+	"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1",
 	"type": "Ed25519VerificationKey",
 	"controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
 	"publicKeyBase58": "3uVAjZpfMv6gmMNam3uVAjZpfkcJCwDwnZn6MNam3uVA",
@@ -595,24 +620,11 @@ Fully resolved into the DID document would look like:
 }],
 
 "authentication": [
-    "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1" // publicKey reference as it has more than one purpose
+    "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1" 
+    // publicKey reference as it has more than one purpose
 ]
 
 ```
-
-The id must be a valid DID with the format `did:factom:CHAIN_ID#KEY_IDENTIFIER`,
-where:
-
-
-- **CHAIN_ID** is the ID of the chain
-
--   **KEY_IDENTIFIER** is a sequence of up to 32 lowercase alphanumeric characters,
-    plus hyphen, without spaces (i.e. KEY_IDENTIFIER matches the regular
-    expression \^[a-z0-9-]{1,32}\$). The intended usage of KEY_IDENTIFIER is to
-    serve as a nickname/alias for the key and it should be unique across the
-    keys defined in the fully resolved DID document. Reuse of the key identifier using future new key material is allowed. What is not permitted is having 2 or more public keys with the same key identifier in the same valid DID document at the same time. It is up to the implementer to decide whether they want to reuse key Identifiers or use unique key identifiers for every change in Public Key data.
-    
-    
 
 The type field can be any value, which identifies the type of signature to be
 used and is left for implementers of this specification to decide. Good examples
@@ -638,7 +650,7 @@ and hex encodings of the public keys.
 
 The authentication values specify public keys, which can be used specifically
 for authenticating the DID subject. The keys used can be either those defined in
-publicKey or freshly defined ones.
+publicKey (so reference like the example above) or freshly defined ones.
 
 To reference an existing key, the id of the key must be used. To add a new key,
 the same format as the one for publicKey must be used. Below is an example,
@@ -646,10 +658,10 @@ which demonstrates both usages:
 
 
 
-```
+```json
 didKey: [
 {	
-		"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#keys-2",
+	"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#keys-2",
 	"type": "Ed25519VerificationKey",
 	"controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
 	"publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
@@ -662,14 +674,11 @@ didKey: [
 
 
 
-```
+```json
 "authentication": [  
-	// this key is referenced, it may be used for other purposes besides authentication  
-	"did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#keys-1",  
-	// this key is embedded and may \*only\* be used for authentication  
+	// this key is embedded because of the single purpose and may only be used for authentication  
 	{  
-		"id":  
-		"did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#keys-2",  
+		"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#keys-2",  
 		"type": "Ed25519VerificationKey",  
 		"controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",  
 		"publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"  
@@ -691,13 +700,12 @@ where SERVICE_IDENTIFIER matches the regular expression \^[a-z0-9-]{1,32}\$.
 
 Below are two examples of service entries, adapted from [2], with the first one
 containing only the mandatory fields for the service and the second one
-containing additional data:
+containing additional data. The service values will end up exactly in the DID document as specified in the Factom Entry for Creation of Update of the DID.  
 
-```
+```json
 "service": [
 	{  
-		"id":
-		"did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#cr",  
+		"id":	"did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#cr",  
 		"type": "CredentialRepositoryService",  
 		"serviceEndpoint": "https://repository.example.com/service/8377464"  
 	},
@@ -716,79 +724,71 @@ containing additional data:
 
 
 
-## DID Resolution (todo: update for v2)
-
+## DID Resolution - DID Document
 
 The resolution of a DID is the process of constructing a DID document by
 sequentially scanning the entries recorded in the DID chain. Next, we outline
 the rules, which must be followed by resolvers for the Factom DID method:
 
--   A DIDManagement entry must appear only as the first entry in a chain
-
--   UpdateDID and DeactivateDID entries must be signed by an unrevoked key
-    defined in publicKey. The key must be referenced by its KEY_IDENTIFIER in
-    the ExtID of the entry. If multiple keys in publicKey have the same
-    KEY_IDENTIFIER, a signature is considered valid if it comes from any of the
-    keys with this identifier.
-
--   If the signature of an UpdateDID entry is from a key which is listed for
+-   DIDManagement entry MUST be the first entry of the chain.
+-   DIDManagement entries on other locations of the chain have to be discarded
+-   DIDManagement entry MUST have a valid didMethodVersion specified (currently only "1.0.0"
+    supported)
+-   DIDManagement entry MUST have at least one management key at priority 0
+-   After the chain is created only DIDMethodVersionUpgrade, DIDUpdate or DIDDeactivation entries are valid. Other entries need to be discarded  
+-   DIDUpdate and DIDDeactivation entries must be signed by an unrevoked key
+    from the previous management Keys array. The respective management Key needs to be defined in the extId field 
+-   If the signature of an DIDUpdate entry is from a key which is listed for
     revoking in the same entry, the signature is still considered valid.
+-   Signing the DIDUpdate entry with a new key listed in the same entry is not allowed. If this happens the entry needs to be ignored.
+-   All entries with invalid signatures must be ignored.
+-   Whilst updating using the DIDUpdate entry, the *revoke* part needs to be processed completely before the *add* part.
+-   Re-use of a previous key identifier is allowed with a different public key, as long as the key identifier is not listed twice in the same section of the resulting DID Document. If that happens the whole DID Document is deemed invalid and the Controller is expected to fix the situation. As long as the previous rule about the order of DIDUpdate is taken into account this should not be possible.
+-   An id in the DIDUpdate may be abreviated to only the part after the # sign. The resolutation has to make a full blown DID of it in the final DID document presented
+-   A purpose field is optional in the DIDUpdate revoke didKey part. Omitting it means the id needs to be revoked for every purpose. If only a specific purpose is mentioned, this means the id needs to be revoked for that purpose only
+-   A key being revoked by a management key with a lower priority than mentioned as the priorityRequirement has to be ingnored
 
--   UpdateDID and DeactivateDID entries with invalid signatures must be ignored.
-
--   UpdateDID entries with a non-unique nonce must be ignored, i.e. if two
-    entries in the DID chain have the same nonce, the second entry must be
-    ignored. This is done to prevent intra-chain replay attacks.
-
--   If a DeactivateDID entry is encountered, scanning must be terminated
-    immediately and the resolver must return an appropriate response, signifying
-    that this DID has been deactivated and is no longer valid. А DeactivateDID
-    entry is always the last valid entry in a DID chain.
-
--   If an UpdateDID entry contains a publicKey KEY_IDENTIFIER in its revoke
-    section and the same key is referenced in the authentication section, the
-    key should be removed from both the public and authentication keys.
-
--   If an UpdateDID entry references a publicKey, authentication or service ID
-    in its revoke section, all respective instances must be revoked (including
-    duplicates with the same ID)
-
-
-
-**Security Considerations**
-===========================
-
-*TODO*
-
-
-
-**Recovery From Key Compromise**
+**Recovery and replacement of keys**
 ================================
 
 Factom DID's have a hierarchical structure of public keys, where \#key-0 is the
-highest priority and \#key-n the lowest. A key replacement can be authorized by
-any key at the same or higher priority. Such a scheme allows for an entity to
+highest priority and \#key-n the lowest. It is up to the user and application of the DIDs how many levels are being used. As explained management Keys are about creating the Factom Entries itself. They also allow you to add or replace keys. These do not only have to be management keys, but will be DID keys as well. 
+
+A key replacement can be authorized by any valid management key at the same or higher priority implicitly, unless a priorityRequirement is explicitly set. In that case the key can only be replaced by a key at the afformentioned priority or higher. Valid management key means it has to be a previously registered management key for this DID. Addition of keys is only allowed by a higher level key. If addition of a same level key is desired without using a higher level key, the only solution is to revoke a current key at the same level and add the key, provided that the key being revoked does not have a priorityRequirement value higher than the current priority.
+
+ Such a scheme allows for an entity to
 store their keys in various levels of security. For example:
 
--   \#key-0 - in cold storage
+-   \#key-level-0 - in cold storage
 
--   \#key-1 - on an airgapped machine
+-   \#key-level-1 - on an airgapped machine
 
--   \#key-2 - used in applications (a.k.a. the hot key)
+-   \#key-level-2 - used in applications (a.k.a. the hot key)
 
 If the hot key is lost or compromised, the other two higher priority keys are
-able to authorize a replacement.
+able to authorize a replacement. Please note that having multiple keys at the same level is allowed.
+
+
 
 ## Privacy Considerations
 
-*TODO*
+This specification takes privacy very seriously. A key decission has been to use chain Ids for the DIDs instead of human readable names. Although human readable names are a nice feature, the risk of entities getting into troubly  by leaking Personally Identifiable Information (PII) is too big. There are some parts in the specification left open for additional interpretation and metadata. All resolvers and registrars must support the specification to be compatible with eachother, but specific logic can be added for certain use cases obviously.
+
+Take care with the extId fields we left open. You could use these to do some custom resolution or to have some additional metadata about an identity for instance. But be very aware of the fact this is a blockchain. Data canot be deleted and you really do not want to put PII information in there or other information that can be used to correlate the identity. If you have a need for selective disclosure you need to look into verifiable credentials, which depend on DIDs, but do not store the data in the DIDs itself.
+
+The above also applies to the key-identifier parts of the id fields. You can make these desriptive, but again be aware to not use PII in these parts of the id field.
+
+  
 
 ## Performance Considerations
 
-*TODO*
+A deliberate choice has been made to not use full DID documents in the entries during update and revoke operations. This is done to save costs and space for the entries. It does however bring strain to the resolution logic as you need to parse multiple entries typically to build the DID document. It is highly recommended to use caching or a database solution as typically DIDs are being used for instance in situations where you will also like to validate data, for instance signatures,  at certain blockheights. Meaning you are not always interested in the resolution of the most current version of the DID document.
+
+Whenever an entry is completely invalid or has invalid signatures discard the entry completely. Do not treat the full resolution as invalid, as the entries could have been made on purpose by a bad actor. If a valid DIDDeactivation entry is found the parsing has to stop at exactly that entry.
+
+
 
 ## References
-
 
 [1] <https://w3c-ccg.github.io/did-use-cases/>  
 
