@@ -127,7 +127,7 @@ namespace of that DID method [3].
 ### DID Method Name
 The namestring that shall identify this DID method is: factom
 
-A DID that uses this method MUST begin with the following prefix: did:factom.
+A DID that uses this method MUST begin with the following prefix: *did:factom*.
 Per the DID specification, this string MUST be in lowercase. The remainder of
 the DID, after the prefix is specified below.
 
@@ -136,7 +136,7 @@ the DID, after the prefix is specified below.
 ### Method Specific Identifier
 
 The method specific name string is composed of an optional Factom network
-identifier with a :separator, followed by a hex-encoded Factom chain ID.
+identifier with a colon (:) separator, followed by a hex-encoded Factom chain ID.
 
 ```
 factom-did = "did:factom:" factom-specific-idstring
@@ -186,7 +186,7 @@ Purpose: A valid entry of this type creates the DID document, located at the DID
 URI: `did:factom:{chain-id}`
 
 The purpose of the nonce is to make the chain ID for the new DID unique. It is
-up to the implementor to assure this. The SHA256 hash of the Content field might
+up to the implementer to assure this. The SHA256 hash of the Content field might
 be a nice suitable default.
 
 The JSON-LD context is the default context for DIDs [2]. Future versions of the
@@ -198,7 +198,7 @@ later sections in this document.
 Resolution Rules for the Entry Structure:
 
 -   MUST be the first entry of the chain
--   MUST have a valid didMethodVersion specified (currently only "1.0.0"
+-   MUST have a valid didMethodVersion specified (currently only *"0.1.0"*
     supported)
 -   MUST have at least one management key at priority 0
 
@@ -218,7 +218,7 @@ Resolution Rules for the Entry Structure:
 
 
  **Content** *(note:  can be minified)*
- ```json
+ ```
 {
   "didMethodVersion": <method spec version tag as string>,
   "managementKey": [
@@ -266,7 +266,7 @@ Resolution Rules for the Entry Structure:
 ```
 [0] = "DIDManagement"
 [1] = "1.0.0"
-[2] = "d9fc30722f88ed15e98b8c256b79242df8d00c042d703306c7720796d4f0f7cd"  // UTF-8 32 bytes of randomness
+[2] = "d9fc30722f88ed15e98b8c256b79242df8d00c042d703306c7720796d4f0f7cd"
 ```
 *Content*
 
@@ -314,11 +314,10 @@ Resolution Rules for the Entry Structure:
 
 *Notes:*
 
--   Explicitly did not include "\@context" in the content as the resolver can
+-   Explicitly did not include *"@context*" in the content as the resolver can
     add this when creating the DID document for a given schema version
 -   Our DID Method Spec version determines the DID Spec version that we
         return 
-  
 
 ___
 
@@ -343,22 +342,22 @@ Resolution Rules:
 -   Signature MUST be over sha256( sha256( ExtID[0] + ExtID[1] + ExtID[2] +
     ExtID[4] + … + ExtID[n] + Content) )
 
--   The revoke part needs to be processed before the add part.
-    
--   Adding Keys
+- Adding Keys
 
-    -   A key being added must never have been previously active for this
-        identity. <!--Why? -->
+  -   A key being added must never have been previously active for this
+      identity
 
--   Revoking Keys
+  -   A key being added must have a key-identifier that has never been
+      previously used for this identity
 
     -   A key being revoked must be currently active <!--Do we consider the DID document invalid? -->
 
 	-   For didKeys you optionally can define the purpose. If defined it means to only deactivate the key for the specific purpose. If the purpose field is not used or empy it means to revoke the key for all purposes.
 	
-		
-		
-		​		
+	
+	​	
+	
+				
 
 #### Entry Structure
 *ExtIDs*
@@ -376,7 +375,7 @@ Resolution Rules:
 
 
 *Content*
-```json
+```
 {
     "revoke": {
         "managementKey": "<array of management key id and  purpose objects to revoke (optional)>",
@@ -399,10 +398,10 @@ Resolution Rules:
 *ExtIDs*
 
 ``` 
-[0] = "DIDUpdate"                                                        // UTF-8 encoded
-[1] = "1.0.0"                                                            // UTF-8 encoded
-[2] = "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-1"  // UTF-8 encoded
-[3] = 0xf88ed15e98b8cb8c256b79242df8d00c042d70330a7edf56c772079256b79242 // raw bytes, N bytes
+[0] = "DIDUpdate"
+[1] = "1.0.0"
+[2] = "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-1"
+[3] = 0xf88ed15e98b8cb8c256b79242df8d00c042d70330a7edf56c772079256b79242
 ```
 
 *Content*
@@ -411,7 +410,7 @@ Resolution Rules:
 {
     "revoke": {
         "managementKey": [ 
-          {
+            {
          		"id" : "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-1"
         	},
         	{
@@ -420,14 +419,14 @@ Resolution Rules:
         ],
         "didKey": [
         	{
-          	"id" : "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1",
-          	"purpose" : ["authentication"]
+          		"id" : "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1",
+          		"purpose" : ["authentication"]
         	}
         ],
         "service": [
         	{
-          	"id" : "#cr"
-          }
+          		"id" : "#cr"
+          	}
         ]
     },
     "add": {
@@ -610,7 +609,7 @@ didKey: [
 
 Fully resolved into the DID document would look like:
 
-```json
+```
 "publicKey": [
 {  
 	"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1",
@@ -674,11 +673,11 @@ didKey: [
 
 
 
-```json
+```
 "authentication": [  
 	// this key is embedded because of the single purpose and may only be used for authentication  
 	{  
-		"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#keys-2",  
+		"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#keys-2",  
 		"type": "Ed25519VerificationKey",  
 		"controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",  
 		"publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"  
@@ -705,12 +704,12 @@ containing additional data. The service values will end up exactly in the DID do
 ```json
 "service": [
 	{  
-		"id":	"did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#cr",  
+		"id":	"did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#cr",  
 		"type": "CredentialRepositoryService",  
 		"serviceEndpoint": "https://repository.example.com/service/8377464"  
 	},
 	{  
-		"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b\#inbox"  
+		"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#inbox",
 		"type": "SocialWebInboxService",  
 		"serviceEndpoint": "https://social.example.com/83hfh37dj",  
 		"description": "My public social inbox",  
@@ -732,7 +731,7 @@ the rules, which must be followed by resolvers for the Factom DID method:
 
 -   DIDManagement entry MUST be the first entry of the chain.
 -   DIDManagement entries on other locations of the chain have to be discarded
--   DIDManagement entry MUST have a valid didMethodVersion specified (currently only "1.0.0"
+-   DIDManagement entry MUST have a valid didMethodVersion specified (currently only "0.1.0"
     supported)
 -   DIDManagement entry MUST have at least one management key at priority 0
 -   After the chain is created only DIDMethodVersionUpgrade, DIDUpdate or DIDDeactivation entries are valid. Other entries need to be discarded  
@@ -744,9 +743,9 @@ the rules, which must be followed by resolvers for the Factom DID method:
 -   All entries with invalid signatures must be ignored.
 -   Whilst updating using the DIDUpdate entry, the *revoke* part needs to be processed completely before the *add* part.
 -   Re-use of a previous key identifier is allowed with a different public key, as long as the key identifier is not listed twice in the same section of the resulting DID Document. If that happens the whole DID Document is deemed invalid and the Controller is expected to fix the situation. As long as the previous rule about the order of DIDUpdate is taken into account this should not be possible.
--   An id in the DIDUpdate may be abreviated to only the part after the # sign. The resolutation has to make a full blown DID of it in the final DID document presented
+-   An id in the DIDUpdate may be abbreviated to only the part after the # sign. The resolution has to make a full blown DID of it in the final DID document presented
 -   A purpose field is optional in the DIDUpdate revoke didKey part. Omitting it means the id needs to be revoked for every purpose. If only a specific purpose is mentioned, this means the id needs to be revoked for that purpose only
--   A key being revoked by a management key with a lower priority than mentioned as the priorityRequirement has to be ingnored
+-   A key being revoked by a management key with a lower priority than mentioned as the priorityRequirement has to be ignored
 
 **Recovery and replacement of keys**
 ================================
