@@ -97,7 +97,8 @@ using other compatible graph-based data formats [2].
 
 
 ### DID Resolvers & Registrars
-A DID system has two main software components: a [resolver](https://github.com/decentralized-identity/universal-resolver) and a [registrar](https://github.com/decentralized-identity/universal-registrar/blob/master/docs/api-documentation.md).
+A DID system has two main software components: a [resolver](https://github.com/decentralized-identity/universal-resolver) and a 
+[registrar](https://github.com/decentralized-identity/universal-registrar/blob/master/docs/api-documentation.md).
 The role of the resolver is to return the valid DID document for a given DID.
 
 On the other hand, the role of the registrar is to allow the creation of new DIDs
@@ -175,7 +176,9 @@ where:
   plus hyphen, without spaces (i.e. KEY_IDENTIFIER matches the regular
   expression \^[a-z0-9-]{1,32}\$). The intended usage of KEY_IDENTIFIER is to
   serve as a nickname/alias for the key and it should be unique across the
-  keys defined in the fully resolved DID document. Reuse of the key identifier using future new key material is allowed. What is not permitted is having 2 or more public keys with the same key identifier in the same valid DID document at the same time. It is up to the implementer to decide whether they want to reuse key Identifiers or use unique key identifiers for every change in Public Key data.
+  keys defined in the fully resolved DID document. Reuse of the key identifier using future new key material is allowed.
+  What is not permitted is having 2 or more public keys with the same key identifier in the same valid DID document at the same time. 
+  It is up to the implementer to decide whether they want to reuse key Identifiers or use unique key identifiers for every change in Public Key data.
 
   
 
@@ -198,8 +201,7 @@ later sections in this document.
 Resolution Rules for the Entry Structure:
 
 -   MUST be the first entry of the chain
--   MUST have a valid didMethodVersion specified (currently only *"0.1.0"*
-    supported)
+-   MUST have a valid didMethodVersion specified (currently *"0.2.0"* is supported)
 -   MUST have at least one management key at priority 0
 
 #### Entry Structure:
@@ -272,19 +274,19 @@ Resolution Rules for the Entry Structure:
 
  ```json
 {
-  "didMethodVersion": "0.1.0",
+  "didMethodVersion": "0.2.0",
   "managementKey": [
     {
-      "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-1",
+      "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-0",
       "type": "Ed25519VerificationKey",
       "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
       "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
-      "priority": 1
+      "priority": 0
     }
   ],
   "didKey": [
     {
-      "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1",
+      "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-0",
       "type": "Ed25519VerificationKey",
       "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
       "publicKeyBase58": "3uVAjZpfMv6gmMNam3uVAjZpfkcJCwDwnZn6MNam3uVA",
@@ -292,7 +294,7 @@ Resolution Rules for the Entry Structure:
       "priorityRequirement": 1
     },
     {
-      "id": "did:factom:76c58916c58916ec258f246851bea091d14d4247a2fc3e18694461b14247a2f#authentication-1",
+      "id": "did:factom:76c58916c58916ec258f246851bea091d14d4247a2fc3e18694461b14247a2f#authentication-0",
       "type": "ECDSASecp256k1VerificationKey",
       "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
       "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
@@ -353,11 +355,10 @@ Resolution Rules:
     -   A key being revoked must be currently active <!--Do we consider the DID document invalid? -->
 
 	-   For didKeys you optionally can define the purpose. If defined it means to only deactivate the key for the specific purpose. If the purpose field is not used or empy it means to revoke the key for all purposes.
-	
-	
-	​	
-	
-				
+
+
+
+
 
 #### Entry Structure
 *ExtIDs*
@@ -411,15 +412,15 @@ Resolution Rules:
     "revoke": {
         "managementKey": [ 
             {
-         		"id" : "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-1"
+         		"id" : "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-0"
         	},
         	{
-        		"id" : "management-2"
+        		"id" : "management-1"
         	}
         ],
         "didKey": [
         	{
-          		"id" : "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1",
+          		"id" : "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-0",
           		"purpose" : ["authentication"]
         	}
         ],
@@ -438,7 +439,7 @@ Resolution Rules:
           "priority": 1
         }],
         "didKey": [{
-          "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#authentication-2",
+          "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#authentication-1",
           "type": "Ed25519VerificationKey",
           "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
           "publicKeyBase58": "3uVAjZpfMv6gmMNH3C2AVjZpfkcJCwDwnZn6z3DwnZn6",
@@ -465,7 +466,7 @@ Resolution Rules:
 
 Purpose: A valid entry of this type signifies that the chain should stop being
 parsed using its currently declared version, and from this point forward be
-parsed according to the rules of the new version. Currently the only used methodSpec version is 0.1.0 and no newer version has been created.
+parsed according to the rules of the new version. Currently the only used methodSpec version is 0.2.0 and no newer version has been created.
 
 Resolution Rules:
 
@@ -568,7 +569,7 @@ Resolution Rules:
 ```
 [0] = "DIDDeactivation"
 [1] = "1.0.0"
-[2] = "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-1"
+[2] = "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-0"
 [3] = 0xf88ed15e98b8cb8c256b79242df8d00c042d70330a7edf56c772079256b79242
 ```
 
@@ -596,7 +597,7 @@ A single example key has the following schema on Factom:
 ```json
 didKey: [
 {	
-	"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1",
+	"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-0",
 	"type": "Ed25519VerificationKey",
 	"controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
 	"publicKeyBase58": "3uVAjZpfMv6gmMNam3uVAjZpfkcJCwDwnZn6MNam3uVA",
@@ -612,14 +613,14 @@ Fully resolved into the DID document would look like:
 ```
 "publicKey": [
 {  
-	"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1",
+	"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-0",
 	"type": "Ed25519VerificationKey",
 	"controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
 	"publicKeyBase58": "3uVAjZpfMv6gmMNam3uVAjZpfkcJCwDwnZn6MNam3uVA",
 }],
 
 "authentication": [
-    "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-1" 
+    "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-0" 
     // publicKey reference as it has more than one purpose
 ]
 
@@ -660,7 +661,7 @@ which demonstrates both usages:
 ```json
 didKey: [
 {	
-	"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#keys-2",
+	"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#authentication-0",
 	"type": "Ed25519VerificationKey",
 	"controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
 	"publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
@@ -677,7 +678,7 @@ didKey: [
 "authentication": [  
 	// this key is embedded because of the single purpose and may only be used for authentication  
 	{  
-		"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#keys-2",  
+		"id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#authentication-0",  
 		"type": "Ed25519VerificationKey",  
 		"controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",  
 		"publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"  
@@ -731,7 +732,7 @@ the rules, which must be followed by resolvers for the Factom DID method:
 
 -   DIDManagement entry MUST be the first entry of the chain.
 -   DIDManagement entries on other locations of the chain have to be discarded
--   DIDManagement entry MUST have a valid didMethodVersion specified (currently only "0.1.0"
+-   DIDManagement entry MUST have a valid didMethodVersion specified (currently only "0.2.0"
     supported)
 -   DIDManagement entry MUST have at least one management key at priority 0
 -   After the chain is created only DIDMethodVersionUpgrade, DIDUpdate or DIDDeactivation entries are valid. Other entries need to be discarded  
@@ -750,19 +751,19 @@ the rules, which must be followed by resolvers for the Factom DID method:
 **Recovery and replacement of keys**
 ================================
 
-Factom DID's have a hierarchical structure of public keys, where \#key-0 is the
-highest priority and \#key-n the lowest. It is up to the user and application of the DIDs how many levels are being used. As explained management Keys are about creating the Factom Entries itself. They also allow you to add or replace keys. These do not only have to be management keys, but will be DID keys as well. 
+Factom DID's have a hierarchical structure of public keys, where key priority 0 is the
+highest priority and key priority n (unbounded) the lowest. It is up to the user and application of the DIDs how many levels are being used. As explained management Keys are about creating the Factom Entries itself. They also allow you to add or replace keys. These do not only have to be management keys, but will be DID keys as well. 
 
-A key replacement can be authorized by any valid management key at the same or higher priority implicitly, unless a priorityRequirement is explicitly set. In that case the key can only be replaced by a key at the afformentioned priority or higher. Valid management key means it has to be a previously registered management key for this DID. Addition of keys is only allowed by a higher level key. If addition of a same level key is desired without using a higher level key, the only solution is to revoke a current key at the same level and add the key, provided that the key being revoked does not have a priorityRequirement value higher than the current priority.
+A key replacement can be authorized by any valid management key at the same or higher priority implicitly, unless a priorityRequirement is explicitly set. In that case the key can only be replaced by a key at the aforementioned priority or higher. Valid management key means it has to be a previously registered management key for this DID. Addition of keys is only allowed by a higher level key. If addition of a same level key is desired without using a higher level key, the only solution is to revoke a current key at the same level and add the key, provided that the key being revoked does not have a priorityRequirement value higher than the current priority.
 
  Such a scheme allows for an entity to
 store their keys in various levels of security. For example:
 
--   \#key-level-0 - in cold storage
+-   \#key priority 0 - in cold storage
 
--   \#key-level-1 - on an airgapped machine
+-   \#key priority 1 - on an air gapped machine
 
--   \#key-level-2 - used in applications (a.k.a. the hot key)
+-   \#key priority 2 - used in applications (a.k.a. the hot key)
 
 If the hot key is lost or compromised, the other two higher priority keys are
 able to authorize a replacement. Please note that having multiple keys at the same level is allowed.
@@ -771,11 +772,11 @@ able to authorize a replacement. Please note that having multiple keys at the sa
 
 ## Privacy Considerations
 
-This specification takes privacy very seriously. A key decission has been to use chain Ids for the DIDs instead of human readable names. Although human readable names are a nice feature, the risk of entities getting into troubly  by leaking Personally Identifiable Information (PII) is too big. There are some parts in the specification left open for additional interpretation and metadata. All resolvers and registrars must support the specification to be compatible with eachother, but specific logic can be added for certain use cases obviously.
+This specification takes privacy very seriously. A key decision has been to use chain Ids for the DIDs instead of human readable names. Although human readable names are a nice feature, the risk of entities getting into trouble  by leaking Personally Identifiable Information (PII) is too big. There are some parts in the specification left open for additional interpretation and metadata. All resolvers and registrars must support the specification to be compatible with each other, but specific logic can be added for certain use cases obviously.
 
-Take care with the extId fields we left open. You could use these to do some custom resolution or to have some additional metadata about an identity for instance. But be very aware of the fact this is a blockchain. Data canot be deleted and you really do not want to put PII information in there or other information that can be used to correlate the identity. If you have a need for selective disclosure you need to look into verifiable credentials, which depend on DIDs, but do not store the data in the DIDs itself.
+Take care with the extId fields we left open. You could use these to do some custom resolution or to have some additional metadata about an identity for instance. But be very aware of the fact this is a blockchain. Data cannot be deleted and you really do not want to put PII information in there or other information that can be used to correlate the identity. If you have a need for selective disclosure you need to look into verifiable credentials, which depend on DIDs, but do not store the data in the DIDs itself.
 
-The above also applies to the key-identifier parts of the id fields. You can make these desriptive, but again be aware to not use PII in these parts of the id field.
+The above also applies to the key-identifier parts of the id fields. You can make these descriptive, but again be aware to not use PII in these parts of the id field.
 
   
 
