@@ -349,12 +349,9 @@ Resolution Rules:
   -   A key being added must never have been previously active for this
       identity
 
-  -   A key being added must have a key-identifier that has never been
-      previously used for this identity
-
-    -   A key being revoked must be currently active <!--Do we consider the DID document invalid? -->
-
-	-   For didKeys you optionally can define the purpose. If defined it means to only deactivate the key for the specific purpose. If the purpose field is not used or empy it means to revoke the key for all purposes.
+  -   A key being revoked must be currently active <!--Do we consider the DID document invalid? -->
+      
+-   For didKeys you optionally can define the purpose. If defined it means to only deactivate the key for the specific purpose. If the purpose field is not used or empy it means to revoke the key for all purposes.
 
 
 
