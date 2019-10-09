@@ -170,7 +170,7 @@ Example factom DIDs:
 The id must be a valid DID with the format `factom-did#key-identifier`, It is allowed to only use the `#key-identifier` whenever the id is about the current DID itself.
 where:
 
-- **factomd-did** is the DID on factor, containing a factom-chain-id. This part it optional as long as the id is about the DID itself. A fully resolved DID document will however always contain the factom-did.
+- **factomd-did** is the DID on factom, containing a factom-chain-id. This part it optional as long as the id is about the DID itself. A fully resolved DID document will however always contain the factom-did.
 
 - **key-identifier** is a sequence of up to 32 lowercase alphanumeric characters,
   plus hyphen, without spaces (i.e. KEY_IDENTIFIER matches the regular
@@ -198,7 +198,7 @@ specification could migrate to a Factom-specific context.
 The format of the publicKey, authentication and service values are described in
 later sections in this document.
 
-Resolution Rules for the Entry Structure:
+Resolution Rules for the Entry Structure of the DIDManagement data:
 
 -   MUST be the first entry of the chain
 -   MUST have a valid didMethodVersion specified (currently *"0.2.0"* is supported)
@@ -211,7 +211,7 @@ Resolution Rules for the Entry Structure:
 ```
 [0] = "DIDManagement"               // UTF-8 encoded
 [1] = <entry schema version tag>    // UTF-8 encoded (ex: "1.0.0") semantic versioned
-[2] = <misc tags / identity names>  // UTF-8 encoded (2nd ExtID must be unique (recommended 32 byte nonce))
+[2] = <misc tags / identity names>  // Bytes or UTF-8 encoded (2nd ExtID must be unique (recommended 32 byte nonce))
 ...
 [n] = <misc tags / identity names>  // UTF-8 encoded
 ```
@@ -350,9 +350,15 @@ Resolution Rules:
       identity
 
   -   A key being revoked must be currently active <!--Do we consider the DID document invalid? -->
-      
--   For didKeys you optionally can define the purpose. If defined it means to only deactivate the key for the specific purpose. If the purpose field is not used or empy it means to revoke the key for all purposes.
+  
+  -   A key being added should have the same or higher key priority number as the management key signing the entry
+      identity
+           
+  -   For didKeys you optionally can define the purpose. If defined it means to only deactivate the key for the specific purpose. If the purpose field is not used or empy it means to revoke the key for all purposes.
 
+- Revoking Keys
+
+  -   At least one management key at level 0 should always remain present. Otherwise the the DID should be treated as deactivated
 
 
 
@@ -363,7 +369,7 @@ Resolution Rules:
 ```
 [0] = "DIDUpdate"                                                   // UTF-8 encoded
 [1] = <entry schema version tag>                                    // UTF-8 encoded
-[2] = <full key identifier of the management key used for signing>  // UTF-8 encoded (signature type inferred from key type)
+[2] = <signer key: full key identifier of the management key used for signing>  // UTF-8 encoded (signature type inferred from key type)
 [3] = <signature over sha256d(all other ext-ids + content)>         // raw bytes, N bytes (signature type dependent)
 [4] = <misc tags>                                                   // encoding not enforced
 ...
@@ -739,6 +745,7 @@ the rules, which must be followed by resolvers for the Factom DID method:
     revoking in the same entry, the signature is still considered valid.
 -   Signing the DIDUpdate entry with a new key listed in the same entry is not allowed. If this happens the entry needs to be ignored.
 -   All entries with invalid signatures must be ignored.
+-   All entries having invalid data or not conforming to the rules in this specification should be ignored during resolution/reading. Registrars or clients writing these invalid entries should generate active errors/exceptions.
 -   Whilst updating using the DIDUpdate entry, the *revoke* part needs to be processed completely before the *add* part.
 -   Re-use of a previous key identifier is allowed with a different public key, as long as the key identifier is not listed twice in the same section of the resulting DID Document. If that happens the whole DID Document is deemed invalid and the Controller is expected to fix the situation. As long as the previous rule about the order of DIDUpdate is taken into account this should not be possible.
 -   An id in the DIDUpdate may be abbreviated to only the part after the # sign. The resolution has to make a full blown DID of it in the final DID document presented
@@ -783,6 +790,86 @@ A deliberate choice has been made to not use full DID documents in the entries d
 
 Whenever an entry is completely invalid or has invalid signatures discard the entry completely. Do not treat the full resolution as invalid, as the entries could have been made on purpose by a bad actor. If a valid DIDDeactivation entry is found the parsing has to stop at exactly that entry.
 
+
+## Example DID document
+
+The following example shows an entry on Factom for creating DID. The resulting DID document follows below the actual Factom entry
+
+
+ ```json
+{
+  "didMethodVersion": "0.2.0",
+  "managementKey": [
+    {
+      "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#management-0",
+      "type": "Ed25519VerificationKey",
+      "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
+      "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
+      "priority": 0
+    }
+  ],
+  "didKey": [
+    {
+      "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-0",
+      "type": "Ed25519VerificationKey",
+      "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
+      "publicKeyBase58": "3uVAjZpfMv6gmMNam3uVAjZpfkcJCwDwnZn6MNam3uVA",
+      "purpose": ["publicKey", "authentication"],
+      "priorityRequirement": 1
+    },
+    {
+      "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#authentication-0",
+      "type": "ECDSASecp256k1VerificationKey",
+      "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
+      "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
+      "purpose": ["authentication"],
+      "priorityRequirement": 2,
+      "bip44": "m / 44' / 0' / 0' / 0 / 0"
+    }
+  ],
+  "service": [
+    {
+      "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#cr",
+      "type": "CredentialRepositoryService",
+      "serviceEndpoint": "https://repository.example.com/service/8377464",
+      "priorityRequirement": 1
+    }
+  ]
+}
+ ```
+The above entry should result in the below DID Document for clients/resolvers.
+
+```json
+{
+  "@context": "https://w3id.org/future-method/v1",
+  "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
+
+  "publicKey": [{
+    "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-0",
+    "type": "Ed25519VerificationKey",
+    "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
+    "publicKeyBase58": "3uVAjZpfMv6gmMNam3uVAjZpfkcJCwDwnZn6MNam3uVA"
+  }],
+
+  "authentication": [
+    
+    "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#public-0",
+    
+    {
+      "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#authentication-0",
+      "type": "Ed25519VerificationKey2018",
+      "controller": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
+      "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"
+    }
+  ],
+
+  "service": [{
+    "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b#cr",
+    "type": "CredentialRepositoryService",
+    "serviceEndpoint": "https://repository.example.com/service/8377464"
+  }]
+}
+```
 
 
 ## References
