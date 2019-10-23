@@ -353,7 +353,7 @@ Resolution Rules:
   
   -   A key being added should have the same or higher key priority number as the management key signing the entry
       identity
-           
+      
   -   For didKeys you optionally can define the purpose. If defined it means to only deactivate the key for the specific purpose. If the purpose field is not used or empy it means to revoke the key for all purposes.
 
 - Revoking Keys
@@ -580,6 +580,135 @@ Resolution Rules:
 
 <none>
 
+
+
+## Resolve (read) 
+
+The inputs of the [DID Resolution](https://w3c-ccg.github.io/did-resolution/#dfn-did-resolution) algorithm are an input [DID](https://w3c-ccg.github.io/did-resolution/#dfn-did) and additional input options.
+
+- The input DID is *REQUIRED* for the DID resolution algorithm
+
+### Input options
+
+#### `result-type`
+
+The `result-type` input option can be used to request a certain type of result.
+
+This input option is *OPTIONAL*.
+
+
+
+#### `no-cache`
+
+The `no-cache` input option can be used to request a certain kind of caching behavior.
+
+This input option is *OPTIONAL*.
+
+Possible values of this option are:
+
+- `"false"` (default value): Caching of DID Documents is allowed.
+- `"true"`: Request that caching is disabled and a fresh DID Document is retrieved.
+
+
+
+### Versioning
+
+If a version-id or version-time input option is provided, the DID resolution algorithm returns a certain version of the DID Document.
+
+#### `version-id`
+
+The `version-id` input option can be used to request a specific version of a DID Document. A Factom implementation should use the block-height for the version id. A consequence is that the version is non-consecutive typically.
+
+This input option is *OPTIONAL*. It is mutually exclusive with  `version-time`.
+
+#### `version-time`
+
+The `version-time` input option can used to request a specific version of a DID Document.
+
+This input option is *OPTIONAL*. It is mutually exclusive with  `version-id`.
+
+The value of this option *MUST* be a string value of an [[RFC3339](https://w3c-ccg.github.io/did-resolution/#bib-rfc3339)] combined date and time string representing the date and time the DID Document was current for the input DID.
+
+
+
+### Algorithm
+
+The resolution of a DID is the process of constructing a DID document by
+sequentially scanning the entries recorded in the DID chain. Next, we outline
+the rules, which must be followed by resolvers for the Factom DID method:
+
+
+
+**Generic W3C DID Algorithm**
+
+- Validate that the input DID conforms to the `did` rule of the [Generic DID Syntax](https://w3c-ccg.github.io/did-spec/#generic-did-syntax) of the W3C specification.
+
+- Determine if the input [DID method](https://w3c-ccg.github.io/did-resolution/#dfn-method) (factom) is supported by the implementation that implements this algorithm and specification. If not, the implementation *MUST* raise an error.
+
+- Obtain the DID Document for the input DID  by executing the [Read](https://w3c-ccg.github.io/did-spec/#read-verify) operation against the input DID's [Decentralized Identifier Registry](https://w3c-ccg.github.io/did-resolution/#dfn-dir), as defined by the input DID method:
+
+  - Besides the input DID. all additional input options of this algorithm *MUST* be passed to the [Read](https://w3c-ccg.github.io/did-spec/#read-verify) operation of the input DID method.
+  - If the input DID does not exist, return a null result.
+  - The result of the [Read](https://w3c-ccg.github.io/did-spec/#read-verify) operation is called the output DID Document.
+
+- Validate that the output DID Document conforms to the serialization of the DID Document [data model](https://w3c-ccg.github.io/did-spec/#data-model). If not, the implementation *MUST* raise an error.
+
+- If the value of  `result-type` input option is  `null` or "did-document":
+
+  ​	Return the output DID Document.
+
+- If the value to of `result-type` input option`"resolution-result"`
+
+  1. Construct a [DID Resolution Result](https://w3c-ccg.github.io/did-resolution/#dfn-did-resolution-result) and populate it with the output DID Document as well as metadata about the processes that produced the result.
+  2. Return the output [DID Resolution Result](https://w3c-ccg.github.io/did-resolution/#dfn-did-resolution-result).
+
+**Factom specific rules**
+
+- DIDManagement entry MUST be the first entry of the chain.
+
+- DIDManagement entries on other locations of the chain have to be discarded
+
+- DIDManagement entry MUST have a valid didMethodVersion specified (currently only "0.2.0"
+  supported)
+
+- DIDManagement entry MUST have at least one management key at priority 0
+
+- After the chain is created only DIDMethodVersionUpgrade, DIDUpdate or DIDDeactivation entries are valid. Other entries need to be discarded  
+
+- DIDUpdate and DIDDeactivation entries must be signed by an unrevoked key
+  from the previous management Keys array. The respective management Key needs to be defined in the extId field 
+
+- If the signature of an DIDUpdate entry is from a key which is listed for
+  revoking in the same entry, the signature is still considered valid.
+
+- Signing the DIDUpdate entry with a new key listed in the same entry is not allowed. If this happens the entry needs to be ignored.
+
+- All entries with invalid signatures must be ignored.
+
+- All entries having invalid data or not conforming to the rules in this specification should be ignored during resolution/reading. Registrars or clients writing these invalid entries should generate active errors/exceptions.
+
+- Whilst updating using the DIDUpdate entry, the *revoke* part needs to be processed completely before the *add* part.
+
+- Re-use of a previous key identifier is allowed with a different public key, as long as the key identifier is not listed twice in the same section of the resulting DID Document. If that happens the whole DID Document is deemed invalid and the Controller is expected to fix the situation. As long as the previous rule about the order of DIDUpdate is taken into account this should not be possible.
+
+- An id in the DIDUpdate may be abbreviated to only the part after the # sign. The resolution has to make a full blown DID of it in the final DID document presented
+
+- A purpose field is optional in the DIDUpdate revoke didKey part. Omitting it means the id needs to be revoked for every purpose. If only a specific purpose is mentioned, this means the id needs to be revoked for that purpose only
+
+- A key being revoked by a management key with a lower priority than mentioned as the priorityRequirement has to be ignored
+
+  
+
+### Local dereferencing
+
+A resolver typically returns the full DID document, a DID resolution result or part of the document, see https://w3c-ccg.github.io/did-resolution/#dfn-did-url-dereferencing
+
+Different parts of the DID URL fereferencing function can be performed by different components of a Factom implementation. E.g. if a DID URL contains a fragment such as did:factom:1234#keys-1, then a "remote" DID Resolver could be used to resolve a DID to its DID Document, but the remaining steps of DID URL Dereferencing (in this case, processing of the key fragment) would be done by a "local" DID Resolver or a client. Implementations should describe their behaviour and it is advices that clients allow support local dereferencing
+
+
+
+
+
 ------
 
 
@@ -725,33 +854,6 @@ containing additional data. The service values will end up exactly in the DID do
 ]
 ```
 
-
-
-## DID Resolution - DID Document
-
-The resolution of a DID is the process of constructing a DID document by
-sequentially scanning the entries recorded in the DID chain. Next, we outline
-the rules, which must be followed by resolvers for the Factom DID method:
-
--   DIDManagement entry MUST be the first entry of the chain.
--   DIDManagement entries on other locations of the chain have to be discarded
--   DIDManagement entry MUST have a valid didMethodVersion specified (currently only "0.2.0"
-    supported)
--   DIDManagement entry MUST have at least one management key at priority 0
--   After the chain is created only DIDMethodVersionUpgrade, DIDUpdate or DIDDeactivation entries are valid. Other entries need to be discarded  
--   DIDUpdate and DIDDeactivation entries must be signed by an unrevoked key
-    from the previous management Keys array. The respective management Key needs to be defined in the extId field 
--   If the signature of an DIDUpdate entry is from a key which is listed for
-    revoking in the same entry, the signature is still considered valid.
--   Signing the DIDUpdate entry with a new key listed in the same entry is not allowed. If this happens the entry needs to be ignored.
--   All entries with invalid signatures must be ignored.
--   All entries having invalid data or not conforming to the rules in this specification should be ignored during resolution/reading. Registrars or clients writing these invalid entries should generate active errors/exceptions.
--   Whilst updating using the DIDUpdate entry, the *revoke* part needs to be processed completely before the *add* part.
--   Re-use of a previous key identifier is allowed with a different public key, as long as the key identifier is not listed twice in the same section of the resulting DID Document. If that happens the whole DID Document is deemed invalid and the Controller is expected to fix the situation. As long as the previous rule about the order of DIDUpdate is taken into account this should not be possible.
--   An id in the DIDUpdate may be abbreviated to only the part after the # sign. The resolution has to make a full blown DID of it in the final DID document presented
--   A purpose field is optional in the DIDUpdate revoke didKey part. Omitting it means the id needs to be revoked for every purpose. If only a specific purpose is mentioned, this means the id needs to be revoked for that purpose only
--   A key being revoked by a management key with a lower priority than mentioned as the priorityRequirement has to be ignored
-
 **Recovery and replacement of keys**
 ================================
 
@@ -841,7 +943,7 @@ The above entry should result in the below DID Document for clients/resolvers.
 
 ```json
 {
-  "@context": "https://w3id.org/future-method/v1",
+  "@context": "https://www.w3.org/2019/did/v1",
   "id": "did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
 
   "publicKey": [{
