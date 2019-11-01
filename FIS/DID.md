@@ -338,6 +338,8 @@ Resolution Rules:
 -   Signer key MUST be of the same or higher priority than all keys being
     added/replaced/retired (checking the optional priorityRequirement element) 
 
+-   The management key must have a full key identifier matching the current chain ID
+    
 -   Signature MUST be over sha256( sha256( ExtID[0] + ExtID[1] + ExtID[2] +
     ExtID[4] + … + ExtID[n] + Content) )
 
@@ -346,10 +348,7 @@ Resolution Rules:
   -   A key being added must never have been previously active for this
       identity
 
-  -   A key being revoked must be currently active <!--Do we consider the DID document invalid? -->
-
   -   A key being added should have the same or higher key priority number as the management key signing the entry
-      identity
       
   - For didKeys you optionally can define the purpose. If defined it means to only deactivate the key for the specific purpose. If the purpose field is not used or empy it means to revoke the key for all purposes.
 
@@ -361,6 +360,7 @@ Resolution Rules:
 
 - Revoking Keys
 
+  -   A key being revoked must be currently active 
   -   At least one management key at level 0 should always remain present. Otherwise the the DID should be treated as deactivated
 
 
@@ -372,7 +372,7 @@ Resolution Rules:
 ```
 [0] = "DIDUpdate"                                                   // UTF-8 encoded
 [1] = <entry schema version tag>                                    // UTF-8 encoded
-[2] = <signer key: full key identifier of the management key used for signing>  // UTF-8 encoded (signature type inferred from key type)
+[2] = <signer key: full key identifier of the management key used for signing matching the current chain id>  // UTF-8 encoded (signature type inferred from key type)
 [3] = <signature over sha256d(all other ext-ids + content)>         // raw bytes, N bytes (signature type dependent)
 [4] = <misc tags>                                                   // encoding not enforced
 ...
