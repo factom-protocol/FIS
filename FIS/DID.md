@@ -338,9 +338,6 @@ Resolution Rules:
 -   Signer key MUST be of the same or higher priority than all keys being
     added/replaced/retired (checking the optional priorityRequirement element) 
 
--   Signer key CAN NOT add another management key at the same priority level,
-    unless it is also revoking itself
-
 -   Signature MUST be over sha256( sha256( ExtID[0] + ExtID[1] + ExtID[2] +
     ExtID[4] + … + ExtID[n] + Content) )
 
@@ -350,11 +347,17 @@ Resolution Rules:
       identity
 
   -   A key being revoked must be currently active <!--Do we consider the DID document invalid? -->
-  
+
   -   A key being added should have the same or higher key priority number as the management key signing the entry
       identity
       
-  -   For didKeys you optionally can define the purpose. If defined it means to only deactivate the key for the specific purpose. If the purpose field is not used or empy it means to revoke the key for all purposes.
+  - For didKeys you optionally can define the purpose. If defined it means to only deactivate the key for the specific purpose. If the purpose field is not used or empy it means to revoke the key for all purposes.
+
+  - If a management key is adding a new management key at the same priority level, it should also be revoking itself. The exception is priority level 0, where multiple keys can be added without a revocation.
+
+  - Furthermore, for all priority levels except 0, a management key is allowed to add only one new management key at the same level. If this rule is violated, the entire DIDUpdate entry is discarded.
+
+      In addition, if there is no explicit self-revocation of the management key, the resolver will automagically revoke the signing management key.
 
 - Revoking Keys
 
@@ -582,15 +585,15 @@ Resolution Rules:
 
 
 
-## Resolve (read) 
+### Resolve (read) 
 
 The inputs of the [DID Resolution](https://w3c-ccg.github.io/did-resolution/#dfn-did-resolution) algorithm are an input [DID](https://w3c-ccg.github.io/did-resolution/#dfn-did) and additional input options.
 
 - The input DID is *REQUIRED* for the DID resolution algorithm
 
-### Input options
+#### Input options
 
-#### `result-type`
+##### `result-type`
 
 The `result-type` input option can be used to request a certain type of result.
 
@@ -598,7 +601,7 @@ This input option is *OPTIONAL*.
 
 
 
-#### `no-cache`
+##### `no-cache`
 
 The `no-cache` input option can be used to request a certain kind of caching behavior.
 
@@ -611,17 +614,17 @@ Possible values of this option are:
 
 
 
-### Versioning
+##### Versioning
 
 If a version-id or version-time input option is provided, the DID resolution algorithm returns a certain version of the DID Document.
 
-#### `version-id`
+###### `version-id`
 
 The `version-id` input option can be used to request a specific version of a DID Document. A Factom implementation should use the block-height for the version id. A consequence is that the version is non-consecutive typically.
 
 This input option is *OPTIONAL*. It is mutually exclusive with  `version-time`.
 
-#### `version-time`
+###### `version-time`
 
 The `version-time` input option can used to request a specific version of a DID Document.
 
@@ -631,7 +634,7 @@ The value of this option *MUST* be a string value of an [[RFC3339](https://w3c-c
 
 
 
-### Algorithm
+#### Algorithm
 
 The resolution of a DID is the process of constructing a DID document by
 sequentially scanning the entries recorded in the DID chain. Next, we outline
@@ -639,7 +642,7 @@ the rules, which must be followed by resolvers for the Factom DID method:
 
 
 
-**Generic W3C DID Algorithm**
+##### Generic W3C DID Algorithm
 
 - Validate that the input DID conforms to the `did` rule of the [Generic DID Syntax](https://w3c-ccg.github.io/did-spec/#generic-did-syntax) of the W3C specification.
 
@@ -662,44 +665,71 @@ the rules, which must be followed by resolvers for the Factom DID method:
   1. Construct a [DID Resolution Result](https://w3c-ccg.github.io/did-resolution/#dfn-did-resolution-result) and populate it with the output DID Document as well as metadata about the processes that produced the result.
   2. Return the output [DID Resolution Result](https://w3c-ccg.github.io/did-resolution/#dfn-did-resolution-result).
 
-**Factom specific rules**
+##### Factom specific rules
 
 - DIDManagement entry MUST be the first entry of the chain.
-
 - DIDManagement entries on other locations of the chain have to be discarded
-
 - DIDManagement entry MUST have a valid didMethodVersion specified (currently only "0.2.0"
   supported)
-
 - DIDManagement entry MUST have at least one management key at priority 0
-
 - After the chain is created only DIDMethodVersionUpgrade, DIDUpdate or DIDDeactivation entries are valid. Other entries need to be discarded  
-
 - DIDUpdate and DIDDeactivation entries must be signed by an unrevoked key
   from the previous management Keys array. The respective management Key needs to be defined in the extId field 
-
 - If the signature of an DIDUpdate entry is from a key which is listed for
   revoking in the same entry, the signature is still considered valid.
-
 - Signing the DIDUpdate entry with a new key listed in the same entry is not allowed. If this happens the entry needs to be ignored.
-
 - All entries with invalid signatures must be ignored.
-
 - All entries having invalid data or not conforming to the rules in this specification should be ignored during resolution/reading. Registrars or clients writing these invalid entries should generate active errors/exceptions.
-
 - Whilst updating using the DIDUpdate entry, the *revoke* part needs to be processed completely before the *add* part.
-
 - Re-use of a previous key identifier is allowed with a different public key, as long as the key identifier is not listed twice in the same section of the resulting DID Document. If that happens the whole DID Document is deemed invalid and the Controller is expected to fix the situation. As long as the previous rule about the order of DIDUpdate is taken into account this should not be possible.
-
 - An id in the DIDUpdate may be abbreviated to only the part after the # sign. The resolution has to make a full blown DID of it in the final DID document presented
-
 - A purpose field is optional in the DIDUpdate revoke didKey part. Omitting it means the id needs to be revoked for every purpose. If only a specific purpose is mentioned, this means the id needs to be revoked for that purpose only
-
 - A key being revoked by a management key with a lower priority than mentioned as the priorityRequirement has to be ignored
 
-  
 
-### Local dereferencing
+
+
+#### HTTP(S) Binding
+
+This section defines a DID Resolver Binding which exposes the DID Resolution and/or DID URL Dereferencing functions (including all input options and output data) via an HTTP(S) endpoint. See § 3.2 Binding Architectures.
+
+Using this binding, the DID Resolution function and/or DID URL Dereferencing function can be executed as follows:
+
+- Construct a request HTTP(S) URL by appending the input DID or input DID URL to the DID Resolver HTTP(S) endpoint.
+- Execute an HTTP GET request on the request HTTP(S) URL.
+- If the input DID does not exist (i.e. the DID Resolution function returns a null result):
+  - The HTTP response status code MUST be 404.
+- If the input DID exists and the result is (part of) a DID Document:
+  - The HTTP response status code MUST be 200.
+  - The HTTP response MUST contain a Content-Type header. The value of this header MUST be application/did+ld+json.
+  - The HTTP response body MUST contain the resolved DID Document or other output resources that is the reult of the DID Resolution or DID URL Dereferencing function.
+- If the input DID exists and the result is a service endpoint URL:
+  - The HTTP response status code MUST be 303.
+  - The HTTP response MUST contain an Location header. The value of this header MUST be the output service endpoint URL.
+
+**Example**
+
+Given the following DID Resolver HTTP(S) endpoint:
+
+```
+https://uniresolver.io/1.0/identifiers/
+```
+
+And given the following input [DID](https://w3c-ccg.github.io/did-resolution/#dfn-did):
+
+```
+did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b
+```
+
+Then the request HTTP(S) URL is:
+
+```
+https://uniresolver.io/1.0/identifiers/did:factom:f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b
+```
+
+
+
+#### Local dereferencing
 
 A resolver typically returns the full DID document, a DID resolution result or part of the document, see https://w3c-ccg.github.io/did-resolution/#dfn-did-url-dereferencing
 
